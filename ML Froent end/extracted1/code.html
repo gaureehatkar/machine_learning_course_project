@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Assess an applicant · SynthGigCredit</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #0F2137;
+      background-color: #F6F8FA;
+    }
+    input[type=range] {
+      accent-color: #0E7C7E;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#F6F8FA] text-[#0F2137] antialiased">
+<!-- Slim Dark Notice Bar (32px) -->
+<div class="h-8 w-full bg-[#1E293B] text-[#E2E8F0] px-6 flex items-center justify-between text-[12px] font-normal tracking-normal z-50">
+<div class="max-w-7xl mx-auto w-full flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#0E7C7E]"></span>
+<span>Research prototype · Synthetic data · Not for real lending decisions</span>
+</div>
+</div>
+<!-- Global Clean Header -->
+<header class="bg-white border-b border-[#E2E8F0] sticky top-0 z-40">
+<div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-8">
+<a class="flex items-center gap-3" href="#">
+<svg fill="none" height="35" viewbox="0 0 160 40" width="140" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#2E5EAA" height="24" rx="3" width="8" x="2" y="8"></rect>
+<rect fill="#B9770E" height="32" rx="3" width="8" x="14" y="4"></rect>
+<rect fill="#6B4C9A" height="21" rx="3" width="8" x="26" y="11"></rect>
+<circle cx="27" cy="6" fill="#159A9C" r="3.5"></circle>
+<text fill="#102A43" font-family="Inter, -apple-system, sans-serif" font-size="17" font-weight="700" letter-spacing="-0.3" x="44" y="24">Synth<tspan fill="#159A9C">Gig</tspan>Credit</text>
+<text fill="#627D98" font-family="Inter, -apple-system, sans-serif" font-size="8" font-weight="600" letter-spacing="0.8" x="45" y="34">DECISION ENGINE</text>
+</svg>
+</a>
+<!-- Navigation Tabs -->
+<nav class="flex items-center gap-1">
+<a class="px-3.5 py-1.5 rounded-md text-[13px] font-semibold text-[#0E7C7E] bg-[#0E7C7E]/10 flex items-center gap-1.5" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-[#0E7C7E]"></span>
+            Assessment
+          </a>
+<a class="px-3.5 py-1.5 rounded-md text-[13px] font-medium text-[#5B6B7B] hover:text-[#0F2137] hover:bg-[#F6F8FA] transition-colors" href="#">
+            Decision Result
+          </a>
+</nav>
+</div>
+<!-- Header Right: Preset selector & Phase Pill -->
+<div class="flex items-center gap-3">
+<select class="text-[13px] font-medium bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E] cursor-pointer" id="preset-selector" onchange="handlePresetSelect(this.value)">
+<option value="1">Demo applicant (APP-001)</option>
+<option value="2">Thin file partner (3 months)</option>
+<option value="3">High risk partner</option>
+<option value="4">Unknown age scenario</option>
+<option value="5">Agricultural labour</option>
+</select>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#F1F5F9] text-[#475569] text-[12px] font-medium border border-[#E2E8F0]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#0E7C7E]"></span>
+          Phase 1 · heuristic risk
+        </span>
+</div>
+</div>
+</header>
+<!-- Main Content Layout -->
+<main class="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+<!-- Page Title Area -->
+<div class="mb-8">
+<h1 class="text-[28px] font-bold text-[#0F2137] tracking-tight leading-tight">Assess an applicant</h1>
+<p class="text-[15px] text-[#5B6B7B] mt-1.5 max-w-3xl leading-relaxed">
+        Enter what is known about the applicant. The system scores risk, evidence quality and policy eligibility separately, then combines them into one decision.
+      </p>
+</div>
+<!-- Main Grid: Left White Form Sheet (8 cols) & Right Sticky Preview (4 cols) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- LEFT: Single Continuous White Sheet (5 sections separated by 1px hairlines) -->
+<div class="lg:col-span-8 bg-white rounded-[12px] border border-[#E2E8F0]">
+<!-- SECTION 1: Applicant -->
+<section class="p-[28px_32px]">
+<div class="flex items-center justify-between mb-5">
+<h2 class="text-[18px] font-semibold text-[#0F2137]">1. Applicant</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+<!-- Applicant ID -->
+<div>
+<label class="block text-[13px] font-medium text-[#0F2137] mb-1.5" for="applicant-id">Applicant ID</label>
+<input class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E]" id="applicant-id" type="text" value="APP-001"/>
+</div>
+<!-- Display Name -->
+<div>
+<label class="block text-[13px] font-medium text-[#0F2137] mb-1.5" for="display-name">Display name</label>
+<input class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E]" id="display-name" type="text" value="Demo applicant"/>
+</div>
+<!-- Age + Unknown checkbox -->
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="text-[13px] font-medium text-[#0F2137]" for="applicant-age">Age</label>
+<label class="flex items-center gap-1.5 text-[12px] text-[#5B6B7B] cursor-pointer hover:text-[#0F2137]">
+<input class="w-3.5 h-3.5 rounded border-[#D1D9E0] text-[#0E7C7E] focus:ring-[#0E7C7E]" id="age-unknown-toggle" onchange="toggleAgeUnknown(this.checked)" type="checkbox"/>
+<span>Age unknown</span>
+</label>
+</div>
+<input class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E]" id="applicant-age" max="75" min="18" oninput="recalcSignals()" type="number" value="30"/>
+</div>
+<!-- Occupation Dropdown -->
+<div>
+<label class="block text-[13px] font-medium text-[#0F2137] mb-1.5" for="occupation-select">Occupation</label>
+<select class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E] cursor-pointer" id="occupation-select" onchange="recalcSignals()">
+<option selected="" value="ride-hailing">Ride-hailing</option>
+<option value="delivery">Delivery</option>
+<option value="freelance">Freelance services</option>
+<option value="retail">Retail / micro-business</option>
+<option value="agricultural">Agricultural labour</option>
+<option value="unknown">Unknown</option>
+</select>
+</div>
+<!-- Months on platform -->
+<div>
+<label class="block text-[13px] font-medium text-[#0F2137] mb-1.5" for="tenure-months">Months on platform</label>
+<input class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E]" id="tenure-months" max="48" min="1" oninput="recalcSignals()" type="number" value="12"/>
+</div>
+<!-- Multi-platform worker toggle -->
+<div class="flex items-center justify-between pt-6">
+<div>
+<span class="block text-[13px] font-medium text-[#0F2137]">Multi-platform worker</span>
+<span class="block text-[12px] text-[#5B6B7B]">Active across two or more gig applications</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" id="multi-platform-toggle" onchange="recalcSignals()" type="checkbox"/>
+<div class="w-10 h-5 bg-[#CBD5E1] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#0E7C7E]"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Divider Line -->
+<hr class="border-t border-[#E2E8F0] m-0"/>
+<!-- SECTION 2: Finances -->
+<section class="p-[28px_32px]">
+<div class="flex items-center justify-between mb-5">
+<h2 class="text-[18px] font-semibold text-[#0F2137]">2. Finances</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+<!-- Monthly Income -->
+<div>
+<label class="block text-[13px] font-medium text-[#0F2137] mb-1.5" for="monthly-income">Monthly income (₹)</label>
+<input class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E]" id="monthly-income" oninput="recalcSignals()" step="500" type="number" value="30000"/>
+</div>
+<!-- Monthly Core Expenses -->
+<div>
+<label class="block text-[13px] font-medium text-[#0F2137] mb-1.5" for="monthly-expenses">Monthly core expenses (₹)</label>
+<input class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E]" id="monthly-expenses" oninput="recalcSignals()" step="500" type="number" value="18000"/>
+</div>
+<!-- Monthly Debt / EMI -->
+<div>
+<label class="block text-[13px] font-medium text-[#0F2137] mb-1.5" for="monthly-debt">Monthly debt / EMI (₹)</label>
+<input class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E]" id="monthly-debt" oninput="recalcSignals()" step="100" type="number" value="4000"/>
+</div>
+<!-- Average Liquid Balance -->
+<div>
+<label class="block text-[13px] font-medium text-[#0F2137] mb-1.5" for="liquidity-mean">Average liquid balance (₹)</label>
+<input class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E]" id="liquidity-mean" oninput="recalcSignals()" step="500" type="number" value="40000"/>
+</div>
+<!-- Lowest Balance -->
+<div>
+<label class="block text-[13px] font-medium text-[#0F2137] mb-1.5" for="liquidity-min">Lowest balance (₹)</label>
+<input class="w-full text-[14px] bg-white text-[#0F2137] border border-[#D1D9E0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#0E7C7E] focus:ring-1 focus:ring-[#0E7C7E]" id="liquidity-min" oninput="recalcSignals()" step="500" type="number" value="15000"/>
+<span class="block text-[12px] text-[#5B6B7B] mt-1">Must not exceed the average</span>
+</div>
+<!-- Income Volatility -->
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="text-[13px] font-medium text-[#0F2137]" for="vol-slider">Income volatility</label>
+<span class="text-[13px] font-semibold text-[#0F2137]" id="vol-badge">0.25</span>
+</div>
+<input class="w-full h-1.5 bg-[#E2E8F0] rounded-lg cursor-pointer" id="vol-slider" max="0.80" min="0.05" oninput="updateVolatility(this.value)" step="0.01" type="range" value="0.25"/>
+<span class="block text-[12px] text-[#5B6B7B] mt-1">Variation of monthly income relative to its average</span>
+</div>
+</div>
+<!-- Plain Grey Text Line for UI Hints (No chips) -->
+<div class="mt-4 pt-3 border-t border-[#F1F5F9] text-[13px] text-[#5B6B7B]">
+<span id="hints-line">UI hints: Expense ratio 60.0% · Debt ratio 13.3% · Monthly surplus +₹8,000</span>
+</div>
+<!-- Collapsed Trend & Seasonality Section -->
+<details class="mt-4 pt-2 group">
+<summary class="text-[13px] font-medium text-[#5B6B7B] hover:text-[#0F2137] cursor-pointer flex items-center gap-1 select-none">
+<span class="material-symbols-outlined text-[16px] transition-transform group-open:rotate-90">chevron_right</span>
+              Trend and seasonality indicators
+            </summary>
+<div class="mt-2.5 pl-5 text-[12px] text-[#5B6B7B] space-y-1">
+<p id="trend-status-text">Trend indicator: Unavailable with under 3 months of history</p>
+<p id="season-status-text">Seasonality index: Unavailable unless 12 months of history</p>
+</div>
+</details>
+</section>
+<!-- Divider Line -->
+<hr class="border-t border-[#E2E8F0] m-0"/>
+<!-- SECTION 3: Evidence available -->
+<section class="p-[28px_32px]">
+<div class="flex items-center justify-between mb-5">
+<h2 class="text-[18px] font-semibold text-[#0F2137]">3. Evidence available</h2>
+</div>
+<!-- History Duration Segmented Control -->
+<div class="mb-5">
+<label class="block text-[13px] font-medium text-[#0F2137] mb-2">History duration observed (H)</label>
+<div class="grid grid-cols-4 gap-2 bg-[#F1F5F9] p-1 rounded-lg">
+<button class="h-duration-btn py-1.5 text-center rounded-md text-[13px] text-[#5B6B7B] hover:text-[#0F2137] font-medium transition-colors" id="h-btn-3" onclick="setHistoryDuration(3)" type="button">3 months</button>
+<button class="h-duration-btn py-1.5 text-center rounded-md text-[13px] text-[#5B6B7B] hover:text-[#0F2137] font-medium transition-colors" id="h-btn-6" onclick="setHistoryDuration(6)" type="button">6 months</button>
+<button class="h-duration-btn py-1.5 text-center rounded-md text-[13px] text-[#5B6B7B] hover:text-[#0F2137] font-medium transition-colors" id="h-btn-9" onclick="setHistoryDuration(9)" type="button">9 months</button>
+<button class="h-duration-btn py-1.5 text-center rounded-md text-[13px] bg-white text-[#0F2137] font-semibold shadow-sm transition-all border border-[#E2E8F0]" id="h-btn-12" onclick="setHistoryDuration(12)" type="button">12 months</button>
+</div>
+</div>
+<!-- Sliders for AA and ULI -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4 mb-5">
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="text-[13px] font-medium text-[#0F2137]" for="aa-slider">Account Aggregator (AA) completeness</label>
+<span class="text-[13px] font-semibold text-[#0F2137]" id="aa-badge">75%</span>
+</div>
+<input class="w-full h-1.5 bg-[#E2E8F0] rounded-lg cursor-pointer" id="aa-slider" max="100" min="0" oninput="updateAA(this.value)" type="range" value="75"/>
+<span class="block text-[12px] text-[#5B6B7B] mt-1">Bank transaction verification depth</span>
+</div>
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="text-[13px] font-medium text-[#0F2137]" for="uli-slider">Unified Lending Interface (ULI) completeness</label>
+<span class="text-[13px] font-semibold text-[#0F2137]" id="uli-badge">70%</span>
+</div>
+<input class="w-full h-1.5 bg-[#E2E8F0] rounded-lg cursor-pointer" id="uli-slider" max="100" min="0" oninput="updateULI(this.value)" type="range" value="70"/>
+<span class="block text-[12px] text-[#5B6B7B] mt-1">Cross-registry verified data</span>
+</div>
+</div>
+<!-- Thin stacked progress bar & formula line -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-3.5">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[12px] text-[#5B6B7B]">E = 0.50 · (H / 12) + 0.25 · AA + 0.25 · ULI</span>
+<span class="text-[13px] font-semibold text-[#0F2137]">
+                Live evidence score: <strong class="font-bold text-[#0E7C7E]" id="section-evidence-val">0.863</strong>
+<span class="text-[12px] font-medium text-[#1E8A3E] ml-1.5" id="section-evidence-badge">· Sufficient</span>
+</span>
+</div>
+<div class="w-full h-2 bg-[#E2E8F0] rounded-full overflow-hidden flex">
+<div class="h-full bg-[#0E7C7E] transition-all duration-200" id="bar-h" style="width: 50.0%"></div>
+<div class="h-full bg-[#B9770E] transition-all duration-200" id="bar-aa" style="width: 18.75%"></div>
+<div class="h-full bg-[#6B4C9A] transition-all duration-200" id="bar-uli" style="width: 17.5%"></div>
+</div>
+<div class="flex items-center justify-between text-[12px] text-[#5B6B7B] mt-2">
+<span>H: <strong class="text-[#0F2137]" id="sub-h">0.500</strong></span>
+<span>AA: <strong class="text-[#0F2137]" id="sub-aa">0.188</strong></span>
+<span>ULI: <strong class="text-[#0F2137]" id="sub-uli">0.175</strong></span>
+<span>Threshold: <strong>0.50</strong></span>
+</div>
+</div>
+</section>
+<!-- Divider Line -->
+<hr class="border-t border-[#E2E8F0] m-0"/>
+<!-- SECTION 4: Scheme eligibility -->
+<section class="p-[28px_32px]">
+<div class="flex items-center justify-between mb-5">
+<h2 class="text-[18px] font-semibold text-[#0F2137]">4. Scheme eligibility</h2>
+</div>
+<!-- Subtle Notice -->
+<div class="mb-4 text-[12px] text-[#5B6B7B] bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg px-3.5 py-2.5">
+            Rules are prototype placeholders, not official criteria.
+          </div>
+<!-- Summary values & e-Shram toggle -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4 mb-4">
+<div class="bg-white border border-[#E2E8F0] rounded-lg p-3">
+<span class="block text-[12px] text-[#5B6B7B]">Age &amp; activity summary</span>
+<span class="block text-[14px] font-semibold text-[#0F2137] mt-0.5" id="scheme-summary-text">30 years · Ride-hailing</span>
+</div>
+<div class="flex items-center justify-between bg-white border border-[#E2E8F0] rounded-lg p-3">
+<div>
+<span class="block text-[13px] font-medium text-[#0F2137]">e-Shram registered</span>
+<span class="block text-[12px] text-[#5B6B7B]">Context only, does not change the decision</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer ml-3">
+<input checked="" class="sr-only peer" id="eshram-toggle" type="checkbox"/>
+<div class="w-10 h-5 bg-[#CBD5E1] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#0E7C7E]"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Divider Line -->
+<hr class="border-t border-[#E2E8F0] m-0"/>
+<!-- SECTION 5: Decision mode -->
+<section class="p-[28px_32px]">
+<div class="flex items-center justify-between mb-5">
+<h2 class="text-[18px] font-semibold text-[#0F2137]">5. Decision mode</h2>
+</div>
+<!-- Four Equal Selectable Tiles (D1 - D4) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+<!-- D1 -->
+<label class="mode-tile border border-[#D1D9E0] rounded-lg p-3.5 cursor-pointer hover:border-[#0E7C7E] transition-all flex flex-col justify-between" id="tile-d1">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[14px] font-semibold text-[#0F2137]">D1: Risk only</span>
+<input class="text-[#0E7C7E] focus:ring-[#0E7C7E]" name="decision-mode" onchange="setDecisionMode('D1')" type="radio" value="D1"/>
+</div>
+<span class="text-[12px] text-[#5B6B7B]">Default risk cutoff alone</span>
+</label>
+<!-- D2 -->
+<label class="mode-tile border border-[#D1D9E0] rounded-lg p-3.5 cursor-pointer hover:border-[#0E7C7E] transition-all flex flex-col justify-between" id="tile-d2">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[14px] font-semibold text-[#0F2137]">D2: Risk + Policy</span>
+<input class="text-[#0E7C7E] focus:ring-[#0E7C7E]" name="decision-mode" onchange="setDecisionMode('D2')" type="radio" value="D2"/>
+</div>
+<span class="text-[12px] text-[#5B6B7B]">Default risk plus scheme pre-qualification</span>
+</label>
+<!-- D3 -->
+<label class="mode-tile border border-[#D1D9E0] rounded-lg p-3.5 cursor-pointer hover:border-[#0E7C7E] transition-all flex flex-col justify-between" id="tile-d3">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[14px] font-semibold text-[#0F2137]">D3: Risk + Evidence</span>
+<input class="text-[#0E7C7E] focus:ring-[#0E7C7E]" name="decision-mode" onchange="setDecisionMode('D3')" type="radio" value="D3"/>
+</div>
+<span class="text-[12px] text-[#5B6B7B]">Default risk gated by telemetry quality</span>
+</label>
+<!-- D4 (Recommended) -->
+<label class="mode-tile border-2 border-[#0E7C7E] bg-[#0E7C7E]/5 rounded-lg p-3.5 cursor-pointer transition-all flex flex-col justify-between" id="tile-d4">
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-2">
+<span class="text-[14px] font-semibold text-[#0E7C7E]">D4: All three layers</span>
+<span class="text-[11px] font-semibold bg-[#0E7C7E] text-white px-1.5 py-0.5 rounded">Recommended</span>
+</div>
+<input checked="" class="text-[#0E7C7E] focus:ring-[#0E7C7E]" name="decision-mode" onchange="setDecisionMode('D4')" type="radio" value="D4"/>
+</div>
+<span class="text-[12px] text-[#5B6B7B]">Full multi-signal evaluation: Risk, Policy and Evidence</span>
+</label>
+</div>
+<!-- Collapsed Thresholds Row -->
+<details class="group mb-6">
+<summary class="text-[13px] font-medium text-[#5B6B7B] hover:text-[#0F2137] cursor-pointer flex items-center gap-1 select-none">
+<span class="material-symbols-outlined text-[16px] transition-transform group-open:rotate-90">chevron_right</span>
+              Thresholds
+            </summary>
+<div class="mt-3 pl-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-[12px] text-[#5B6B7B] bg-[#F8FAFC] border border-[#E2E8F0] p-3 rounded-lg">
+<div>
+<span class="block font-medium text-[#0F2137]">Risk cutoff (τ)</span>
+<span class="text-[#5B6B7B]">25.0% probability of default</span>
+</div>
+<div>
+<span class="block font-medium text-[#0F2137]">Evidence cutoff (τ_E)</span>
+<span class="text-[#5B6B7B]">0.50 score minimum</span>
+</div>
+</div>
+</details>
+<!-- End of form CTA button at the end of the sheet -->
+<div class="pt-2">
+<button class="w-full py-3 px-5 rounded-lg bg-[#0E7C7E] hover:bg-[#0b6567] text-white font-semibold text-[15px] transition-colors flex items-center justify-center gap-2" onclick="runAssessmentPipeline()" type="button">
+<span>Assess applicant</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</section>
+</div>
+<!-- RIGHT: Sticky Side Panel (4 cols) -->
+<div class="lg:col-span-4 sticky top-24">
+<div class="bg-white rounded-[12px] border border-[#E2E8F0] p-6 shadow-sm">
+<!-- Live Preview Title -->
+<div class="flex items-center justify-between pb-3.5 mb-5 border-b border-[#E2E8F0]">
+<h3 class="text-[16px] font-bold text-[#0F2137]">Live preview</h3>
+<span class="w-2 h-2 rounded-full bg-[#0E7C7E]"></span>
+</div>
+<!-- Evidence Score Featured Prominently in 32px bold -->
+<div class="mb-6 p-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+<span class="block text-[12px] font-medium text-[#5B6B7B] uppercase tracking-wider mb-1">Evidence score</span>
+<div class="flex items-baseline gap-2.5">
+<span class="text-[32px] font-bold text-[#0F2137] leading-none" id="preview-evidence-score">0.863</span>
+<span class="inline-flex items-center text-[12px] font-medium px-2 py-0.5 rounded bg-[#EAF5EC] text-[#1E8A3E]" id="preview-evidence-badge">
+                Sufficient (score ≥ 0.50)
+              </span>
+</div>
+</div>
+<!-- Three Plain Status Text Rows -->
+<div class="space-y-3 mb-6 text-[13px] border-b border-[#E2E8F0] pb-5">
+<div class="flex items-center justify-between">
+<span class="text-[#5B6B7B]">Risk:</span>
+<span class="font-medium text-[#5B6B7B]">Available after assessment</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-[#5B6B7B]">Policy:</span>
+<span class="font-medium text-[#5B6B7B]">Available after assessment</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-[#5B6B7B]">Mode:</span>
+<span class="font-medium text-[#0F2137]" id="preview-mode-text">D4 (All three layers)</span>
+</div>
+</div>
+<!-- Primary CTA Button -->
+<button class="w-full py-3 px-4 rounded-lg bg-[#0E7C7E] hover:bg-[#0b6567] text-white font-semibold text-[14px] transition-colors flex items-center justify-center gap-1.5" onclick="runAssessmentPipeline()" type="button">
+<span>Assess applicant</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Clean Footer -->
+<footer class="w-full bg-white border-t border-[#E2E8F0] py-4 mt-12">
+<div class="max-w-7xl mx-auto px-6 text-center text-[12px] text-[#5B6B7B]">
+      Synthetic data (SynthGigCredit-IN-v1). Income, age and occupation grounded in Afsharinia &amp; Gurtoo (2025). ML pipeline checked on Home Credit.
+    </div>
+</footer>
+<!-- Application Logic -->
+<script>
+    const appState = {
+      historyMonths: 12,
+      aaPct: 75,
+      uliPct: 70,
+      decisionMode: 'D4',
+      ageUnknown: false
+    };
+
+    function updateVolatility(val) {
+      document.getElementById('vol-badge').textContent = parseFloat(val).toFixed(2);
+      recalcSignals();
+    }
+
+    function updateAA(val) {
+      appState.aaPct = parseInt(val, 10);
+      document.getElementById('aa-badge').textContent = val + '%';
+      recalcSignals();
+    }
+
+    function updateULI(val) {
+      appState.uliPct = parseInt(val, 10);
+      document.getElementById('uli-badge').textContent = val + '%';
+      recalcSignals();
+    }
+
+    function setHistoryDuration(months) {
+      appState.historyMonths = months;
+      [3, 6, 9, 12].forEach(m => {
+        const btn = document.getElementById('h-btn-' + m);
+        if (m === months) {
+          btn.className = 'h-duration-btn py-1.5 text-center rounded-md text-[13px] bg-white text-[#0F2137] font-semibold shadow-sm transition-all border border-[#E2E8F0]';
+        } else {
+          btn.className = 'h-duration-btn py-1.5 text-center rounded-md text-[13px] text-[#5B6B7B] hover:text-[#0F2137] font-medium transition-colors';
+        }
+      });
+
+      // Update trend/seasonality text based on history
+      const trendText = document.getElementById('trend-status-text');
+      const seasonText = document.getElementById('season-status-text');
+
+      if (months < 3) {
+        trendText.textContent = 'Trend indicator: Unavailable with under 3 months of history';
+      } else {
+        trendText.textContent = 'Trend indicator: Available (+0.04 monthly stability)';
+      }
+
+      if (months < 12) {
+        seasonText.textContent = 'Seasonality index: Unavailable unless 12 months of history';
+      } else {
+        seasonText.textContent = 'Seasonality index: Available (0.12 baseline volatility)';
+      }
+
+      recalcSignals();
+    }
+
+    function toggleAgeUnknown(isUnknown) {
+      appState.ageUnknown = isUnknown;
+      const ageInput = document.getElementById('applicant-age');
+      if (isUnknown) {
+        ageInput.disabled = true;
+        ageInput.value = '';
+      } else {
+        ageInput.disabled = false;
+        ageInput.value = '30';
+      }
+      recalcSignals();
+    }
+
+    function setDecisionMode(mode) {
+      appState.decisionMode = mode;
+      
+      const modes = ['D1', 'D2', 'D3', 'D4'];
+      modes.forEach(m => {
+        const tile = document.getElementById('tile-' + m.toLowerCase());
+        if (m === mode) {
+          tile.className = 'mode-tile border-2 border-[#0E7C7E] bg-[#0E7C7E]/5 rounded-lg p-3.5 cursor-pointer transition-all flex flex-col justify-between';
+        } else {
+          tile.className = 'mode-tile border border-[#D1D9E0] rounded-lg p-3.5 cursor-pointer hover:border-[#0E7C7E] transition-all flex flex-col justify-between';
+        }
+      });
+
+      const modeLabels = {
+        'D1': 'D1 (Risk only)',
+        'D2': 'D2 (Risk + Policy)',
+        'D3': 'D3 (Risk + Evidence)',
+        'D4': 'D4 (All three layers)'
+      };
+      document.getElementById('preview-mode-text').textContent = modeLabels[mode];
+    }
+
+    function recalcSignals() {
+      // 1. Evidence Score
+      const h = appState.historyMonths;
+      const aa = appState.aaPct / 100;
+      const uli = appState.uliPct / 100;
+
+      const cH = 0.50 * (h / 12);
+      const cAA = 0.25 * aa;
+      const cULI = 0.25 * uli;
+      const score = cH + cAA + cULI;
+
+      document.getElementById('sub-h').textContent = cH.toFixed(3);
+      document.getElementById('sub-aa').textContent = cAA.toFixed(3);
+      document.getElementById('sub-uli').textContent = cULI.toFixed(3);
+
+      document.getElementById('bar-h').style.width = (cH * 100).toFixed(1) + '%';
+      document.getElementById('bar-aa').style.width = (cAA * 100).toFixed(1) + '%';
+      document.getElementById('bar-uli').style.width = (cULI * 100).toFixed(1) + '%';
+
+      const formattedScore = score.toFixed(3);
+      document.getElementById('section-evidence-val').textContent = formattedScore;
+      document.getElementById('preview-evidence-score').textContent = formattedScore;
+
+      const isSufficient = score >= 0.50;
+      const sectionBadge = document.getElementById('section-evidence-badge');
+      const previewBadge = document.getElementById('preview-evidence-badge');
+
+      if (isSufficient) {
+        sectionBadge.className = 'text-[12px] font-medium text-[#1E8A3E] ml-1.5';
+        sectionBadge.textContent = '· Sufficient';
+        previewBadge.className = 'inline-flex items-center text-[12px] font-medium px-2 py-0.5 rounded bg-[#EAF5EC] text-[#1E8A3E]';
+        previewBadge.textContent = 'Sufficient (score ≥ 0.50)';
+      } else {
+        sectionBadge.className = 'text-[12px] font-medium text-[#9A6700] ml-1.5';
+        sectionBadge.textContent = '· Insufficient';
+        previewBadge.className = 'inline-flex items-center text-[12px] font-medium px-2 py-0.5 rounded bg-[#FFF4D6] text-[#9A6700]';
+        previewBadge.textContent = 'Insufficient (score < 0.50)';
+      }
+
+      // 2. Financial ratios for hints line
+      const inc = parseFloat(document.getElementById('monthly-income').value) || 1;
+      const exp = parseFloat(document.getElementById('monthly-expenses').value) || 0;
+      const debt = parseFloat(document.getElementById('monthly-debt').value) || 0;
+
+      const expRatio = ((exp / inc) * 100).toFixed(1);
+      const debtRatio = ((debt / inc) * 100).toFixed(1);
+      const surplus = inc - exp - debt;
+      const surplusStr = (surplus >= 0 ? '+₹' : '-₹') + Math.abs(surplus).toLocaleString('en-IN');
+
+      document.getElementById('hints-line').textContent = 
+        `UI hints: Expense ratio ${expRatio}% · Debt ratio ${debtRatio}% · Monthly surplus ${surplusStr}`;
+
+      // 3. Scheme summary string
+      const occSelect = document.getElementById('occupation-select');
+      const occText = occSelect.options[occSelect.selectedIndex].text;
+      const ageStr = appState.ageUnknown ? 'Age unknown' : (document.getElementById('applicant-age').value || '--') + ' years';
+      document.getElementById('scheme-summary-text').textContent = `${ageStr} · ${occText}`;
+    }
+
+    function handlePresetSelect(val) {
+      if (val === '1') {
+        document.getElementById('applicant-id').value = 'APP-001';
+        document.getElementById('display-name').value = 'Demo applicant';
+        toggleAgeUnknown(false);
+        document.getElementById('age-unknown-toggle').checked = false;
+        document.getElementById('applicant-age').value = '30';
+        document.getElementById('occupation-select').value = 'ride-hailing';
+        document.getElementById('tenure-months').value = '12';
+        document.getElementById('monthly-income').value = '30000';
+        document.getElementById('monthly-expenses').value = '18000';
+        document.getElementById('monthly-debt').value = '4000';
+        document.getElementById('liquidity-mean').value = '40000';
+        document.getElementById('liquidity-min').value = '15000';
+        document.getElementById('vol-slider').value = '0.25';
+        updateVolatility('0.25');
+        setHistoryDuration(12);
+        document.getElementById('aa-slider').value = '75';
+        updateAA(75);
+        document.getElementById('uli-slider').value = '70';
+        updateULI(70);
+      } else if (val === '2') {
+        document.getElementById('applicant-id').value = 'APP-002';
+        document.getElementById('display-name').value = 'Thin file partner (3 months)';
+        toggleAgeUnknown(false);
+        document.getElementById('age-unknown-toggle').checked = false;
+        document.getElementById('applicant-age').value = '24';
+        document.getElementById('occupation-select').value = 'delivery';
+        document.getElementById('tenure-months').value = '3';
+        document.getElementById('monthly-income').value = '22000';
+        document.getElementById('monthly-expenses').value = '14000';
+        document.getElementById('monthly-debt').value = '1500';
+        document.getElementById('liquidity-mean').value = '18000';
+        document.getElementById('liquidity-min').value = '6000';
+        document.getElementById('vol-slider').value = '0.35';
+        updateVolatility('0.35');
+        setHistoryDuration(3);
+        document.getElementById('aa-slider').value = '40';
+        updateAA(40);
+        document.getElementById('uli-slider').value = '40';
+        updateULI(40);
+      } else if (val === '3') {
+        document.getElementById('applicant-id').value = 'APP-003';
+        document.getElementById('display-name').value = 'High risk partner';
+        toggleAgeUnknown(false);
+        document.getElementById('age-unknown-toggle').checked = false;
+        document.getElementById('applicant-age').value = '39';
+        document.getElementById('occupation-select').value = 'delivery';
+        document.getElementById('tenure-months').value = '6';
+        document.getElementById('monthly-income').value = '18000';
+        document.getElementById('monthly-expenses').value = '16500';
+        document.getElementById('monthly-debt').value = '7000';
+        document.getElementById('liquidity-mean').value = '8000';
+        document.getElementById('liquidity-min').value = '2000';
+        document.getElementById('vol-slider').value = '0.65';
+        updateVolatility('0.65');
+        setHistoryDuration(6);
+        document.getElementById('aa-slider').value = '60';
+        updateAA(60);
+        document.getElementById('uli-slider').value = '55';
+        updateULI(55);
+      } else if (val === '4') {
+        document.getElementById('applicant-id').value = 'APP-004';
+        document.getElementById('display-name').value = 'Unknown age scenario';
+        toggleAgeUnknown(true);
+        document.getElementById('age-unknown-toggle').checked = true;
+        document.getElementById('occupation-select').value = 'freelance';
+        document.getElementById('tenure-months').value = '14';
+        document.getElementById('monthly-income').value = '28000';
+        document.getElementById('monthly-expenses').value = '15000';
+        document.getElementById('monthly-debt').value = '2000';
+        document.getElementById('liquidity-mean').value = '35000';
+        document.getElementById('liquidity-min').value = '12000';
+        document.getElementById('vol-slider').value = '0.22';
+        updateVolatility('0.22');
+        setHistoryDuration(12);
+        document.getElementById('aa-slider').value = '80';
+        updateAA(80);
+        document.getElementById('uli-slider').value = '80';
+        updateULI(80);
+      } else if (val === '5') {
+        document.getElementById('applicant-id').value = 'APP-005';
+        document.getElementById('display-name').value = 'Agricultural labour';
+        toggleAgeUnknown(false);
+        document.getElementById('age-unknown-toggle').checked = false;
+        document.getElementById('applicant-age').value = '35';
+        document.getElementById('occupation-select').value = 'agricultural';
+        document.getElementById('tenure-months').value = '12';
+        document.getElementById('monthly-income').value = '25000';
+        document.getElementById('monthly-expenses').value = '15000';
+        document.getElementById('monthly-debt').value = '2000';
+        document.getElementById('liquidity-mean').value = '20000';
+        document.getElementById('liquidity-min').value = '8000';
+        document.getElementById('vol-slider').value = '0.25';
+        updateVolatility('0.25');
+        setHistoryDuration(12);
+        document.getElementById('aa-slider').value = '70';
+        updateAA(70);
+        document.getElementById('uli-slider').value = '65';
+        updateULI(65);
+      }
+      recalcSignals();
+    }
+
+    function runAssessmentPipeline() {
+      // Dispatches to decision result
+      alert('Assessment completed. Proceeding to Decision Result view.');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      recalcSignals();
+    });
+  </script>
+</body></html>

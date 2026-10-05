@@ -1,0 +1,62 @@
+# Model configuration for Home Credit authentic experiment and synthetic pipeline
+# -------------------------------------------------------------------------------
+
+authentic:
+  data_path: data/authentic/application_train.csv
+  seed: 42
+  test_size: 0.20
+  val_size: 0.20
+  features:
+    numeric:
+      - AMT_INCOME_TOTAL
+      - AMT_CREDIT
+      - AMT_ANNUITY
+      - AMT_GOODS_PRICE
+      - EXT_SOURCE_1
+      - EXT_SOURCE_2
+      - EXT_SOURCE_3
+      - CNT_CHILDREN
+      - CNT_FAM_MEMBERS
+      - REGION_RATING_CLIENT
+    categorical:
+      - NAME_CONTRACT_TYPE
+      - NAME_INCOME_TYPE
+      - NAME_EDUCATION_TYPE
+      - FLAG_OWN_CAR
+      - FLAG_OWN_REALTY
+    derived:
+      credit_income_ratio: "AMT_CREDIT / AMT_INCOME_TOTAL"
+      annuity_income_ratio: "AMT_ANNUITY / AMT_INCOME_TOTAL"
+      credit_term: "AMT_CREDIT / AMT_ANNUITY"
+      age_years: "DAYS_BIRTH / -365"
+      years_employed: "DAYS_EMPLOYED / -365"  # 365243 => NaN + flag
+    exclude:
+      - CODE_GENDER
+
+models:
+  logreg:
+    C: 1.0
+    max_iter: 1000
+    solver: lbfgs
+    penalty: l2
+    random_state: 42
+
+  xgb:
+    n_estimators: 100
+    max_depth: 4
+    learning_rate: 0.1
+    subsample: 0.8
+    colsample_bytree: 0.8
+    use_label_encoder: false
+    eval_metric: logloss
+    random_state: 42
+
+calibration:
+  method: platt           # own implementation in src/calibration/platt.py
+  clip_eps: 1.0e-6
+
+evaluation:
+  bootstrap_n: 1000
+  bootstrap_seed: 0
+  ece_bins: 10            # equal-frequency bins
+  alpha: 0.05

@@ -1,0 +1,130 @@
+# SynthGigCredit-IN-v1 — Experiment Configuration v1.2
+# -------------------------------------------------------
+# IMPORTANT: g0_seed (0) is the Gate G0 validation seed.
+# It is EXCLUDED from experimental seeds 1-10.
+# g0_seed is UNRELATED to Platt calibration.
+
+seed_base: 0
+
+data:
+  n_applicants: 25000
+  obs_months: 12
+  outcome_months: 12
+  dgps: [1, 2]
+  seeds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  g0_seed: 0                        # Gate G0 dataset seed only — not in seeds list above
+  output_dir: data/synthetic
+
+dgp:
+  # Income: LogNormal(mu=9.9, sigma=0.4) => median ~19.9k INR, mean ~21.6k INR
+  mu_income: 9.9
+  sigma_income: 0.4
+  # Liquidity initial condition — prevalence tuning knob
+  mu_L0: 10.5
+  sigma_L0: 0.8
+  # Outcome-window regime change magnitudes (tuned at G0)
+  s_inc: 0.25                       # income shock scale in outcome window
+  s_rho: 0.12                       # expense ratio shift in outcome window
+  # DGP-2 income shock
+  shock_prob: 0.1
+  shock_mag: 0.5
+  # Policy methodology validation (MUST be 0 in all main-study runs)
+  policy_effect_delta: 0.0
+  # Platform tenure range at cutoff
+  tenure_max_at_cutoff: 24
+  # History length distribution: H_i drawn from {3,6,9,12}
+  history_probs:
+    3: 0.15
+    6: 0.25
+    9: 0.25
+    12: 0.35
+  # Policy attribute missingness (MCAR)
+  attr_missing_rate: 0.05
+  # e-Shram registration prevalence (methodological assumption)
+  e_shram_prob: 0.64
+  # EMI holder probability
+  emi_prob: 0.30
+  emi_min: 3000
+  emi_max: 8000
+  # Multi-platform probability
+  multi_platform_prob: 0.60
+  # Expense ratio range
+  rho_min: 0.45
+  rho_max: 0.85
+  # Seasonal amplitude range
+  amp_min: 0.05
+  amp_max: 0.35
+  # Occupation distribution (PROVISIONAL — depends on UNVERIFIED rule content)
+  occupation_probs:
+    ride_hailing: 0.30
+    delivery: 0.30
+    freelance_services: 0.20
+    retail_micro: 0.12
+    agri_labour: 0.08
+
+evidence:
+  weights:
+    history: 0.5
+    aa: 0.25
+    uli: 0.25
+  tau_e: 0.5
+
+policy:
+  rules_dir: configs/policy_rules
+  # UNVERIFIED | VERIFIED — set VERIFIED only after Task 10b is complete
+  rule_set_status: VERIFIED  # Research verified on 2026-09-29
+  # SYNTHETIC observation-cutoff date; must fall inside a verified version's effective interval
+  decision_date: "2026-01-01"
+  # any = Kleene OR over JanSamarth and PMMY
+  scheme_mode: any
+  attr_missing_rate: 0.05
+
+grounding_dataset:
+  # UNIDENTIFIED | FROZEN — set FROZEN only after licence is confirmed on Mendeley page
+  status: FROZEN              # Licence VERIFIED: CC BY 4.0
+  freeze_doc: docs/dataset2_freeze.md
+  name: "COVID-19 and Human Security (Afsharinia & Gurtoo)"
+  doi: "10.17632/j6hd2dfsh8.1"
+  url: "https://data.mendeley.com/datasets/j6hd2dfsh8/1"
+  licence: "CC BY 4.0"
+  licence_url: "https://creativecommons.org/licenses/by/4.0/"
+  licence_verified: true
+  local_file: "data/authentic/Dataset -COVID-19 and Human Security.xlsx"
+  sample_size: 2830
+  geography: "Bangalore, India"
+  period: "Jul-Nov 2019 (retrospective); Dec 2020 - Feb 2021 (survey)"
+  unit: "individual gig worker"
+  default_labels_present: false
+
+decision:
+  approval_target: 0.70
+  review_budgets: [0.20, 0.30]
+  review_strategies: [R0, R1, R2, R3]
+
+cost:
+  m: 1.0
+  L: [3, 5, 10]
+  c_rev: [0.1, 0.2]
+
+stats:
+  bootstrap: 1000
+  alpha: 0.05
+  n_primary_contrasts: 3
+
+# G0 gate thresholds — null values MUST be set by a human BEFORE looking at G0 results
+g0:
+  prevalence_range: [0.12, 0.18]
+  evidence_fail_range: [0.15, 0.35]
+  max_roc_auc: 0.97          # non-trivial difficulty threshold — model must not saturate
+  policy_corr_tol: 0.05      # policy attributes must be near-independent of default_flag
+
+# Credit scoring (scorecard scaling) — RESEARCH PROTOTYPE ONLY
+# Formula: score = offset + factor * ln(odds)
+# where odds = (1-PD)/PD, factor = PDO/ln(2), offset = base_score - factor*ln(base_odds)
+scoring:
+  base_score: 600            # Baseline score at base_odds
+  base_odds: 0.05            # Baseline odds (1 in 20 default rate = 0.05)
+  pdo: 50                    # Points-to-Double-Odds — score change for 2x odds change
+  score_min: 300             # Minimum displayed score
+  score_max: 900             # Maximum displayed score
+  label: "Illustrative score derived from default probability. Not comparable to bureau scores."

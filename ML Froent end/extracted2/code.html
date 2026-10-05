@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_standard" name="shell-type"/>
+<title>SynthGigCredit - Decision Result</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #F6F8FA;
+        color: #0F2137;
+      }
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="bg-[#F6F8FA] text-[#0F2137] min-h-screen flex flex-col font-['Inter']">
+<!-- 1. Global Notice Bar (32px high) -->
+<aside class="w-full bg-[#162B40] text-slate-200 text-[12px] h-[32px] px-4 flex items-center justify-center font-normal tracking-wide">
+<span class="">Research prototype · Synthetic data · Not for real lending decisions</span>
+</aside>
+<!-- 2. Main Header -->
+<header class="w-full bg-white border-b border-[#E2E8F0] sticky top-0 z-40">
+<div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-6">
+<a class="flex items-center gap-2" href="#"><img alt="SynthGigCredit" class="h-8 w-auto" src="https://lh3.googleusercontent.com/aida/AEtjO1WyE74gOGt7SkhX9leE_J0-xS6-Eqe9s3tF2py1fTkf2KcXEusd7Tidhn2Y6kStYIa0HPCn8EabFe7AEygz6MQCOxOVeZfE-lVSfy0gk_NxPGJTiwK6HXPxTr-0Ghh6Sira5jBiNKjT4NilS_uBSDFLRlVeT-e5_w_Nzh15Elw0Znv9gdqrXOVVZBQHkTDiFQXuUeti1miO02B9Boza2oKWFY92spD4bgsHxvLOTHZOOQHkGFqT1Ztsrirw"/></a>
+<nav class="hidden md:flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-lg">
+<a class="px-3 py-1.5 text-[13px] font-medium text-[#5B6B7B] hover:text-[#0F2137] rounded-md transition-colors" data-path="assessment" href="#">Assessment</a>
+<a class="px-3 py-1.5 text-[13px] font-semibold text-[#0E7C7E] bg-white rounded-md shadow-sm" data-path="decision-result" href="#">Decision Result</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
+<label class="sr-only" for="scenario-select">Select Scenario</label>
+<select class="bg-white border border-[#E2E8F0] text-[13px] text-[#0F2137] font-medium px-3 py-1.5 rounded-[8px] focus:outline-none focus:border-[#0E7C7E]" id="scenario-select">
+<option>Scenario: Review - Thin File (3mo)</option>
+<option>Scenario: Clear Approve</option>
+<option>Scenario: Decline - High Risk</option>
+<option>Scenario: Review - Policy Unresolved</option>
+<option>Scenario: Decline - Policy Ineligible</option>
+</select>
+</div>
+<div class="w-8 h-8 rounded-full bg-[#E6F4F4] text-[#0E7C7E] flex items-center justify-center font-medium text-[13px]">
+<span class="material-symbols-outlined text-[18px]">person</span>
+</div>
+</div>
+</div>
+</header>
+<!-- 3. Context Strip -->
+<section class="w-full bg-white border-b border-[#E2E8F0]">
+<div class="max-w-7xl mx-auto px-6 py-2.5 text-[13px] text-[#5B6B7B] flex flex-wrap items-center gap-2">
+<span class="font-medium text-[#0F2137]">Demo applicant</span>
+<span class="text-[#CBD5E1]">·</span>
+<span class="">APP-001</span>
+<span class="text-[#CBD5E1]">·</span>
+<span class="">Mode D4</span>
+<span class="text-[#CBD5E1]">·</span>
+<span class="">τ 25%</span>
+<span class="text-[#CBD5E1]">·</span>
+<span class="">τ_E 0.50</span>
+<span class="text-[#CBD5E1]">·</span>
+<span class="">Phase 1</span>
+<span class="text-[#CBD5E1]">·</span>
+<span class="">heuristic risk</span>
+<span class="text-[#CBD5E1]">·</span><span class="inline-flex items-center gap-1 bg-[#F1F5F9] text-[#2E5EAA] px-2 py-0.5 rounded font-medium text-[12px] border border-[#E2E8F0]"><span class="material-symbols-outlined text-[14px]">speed</span>Credit Score Model: Synthetic Tri-Layer (642)</span></div>
+</section>
+<!-- Main Content Layout -->
+<main class="max-w-7xl mx-auto w-full px-6 py-6 flex flex-col gap-6 flex-1">
+<!-- 4. Hero Banner (Warm Amber) -->
+<section class="bg-[#FFF4D6] border border-[#FFE082] rounded-[12px] p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
+<div class="flex-1">
+<h1 class="text-[44px] font-bold text-[#9A6700] leading-none mb-3">REVIEW</h1>
+<p class="text-[16px] leading-relaxed text-[#0F2137]">
+          Risk gate passed (PD 18.5% &lt; 25.0%) and Policy layer satisfied, but Evidence quality (Score 0.375 &lt; 0.50) is insufficient for automated approval.
+        </p>
+</div>
+<div class="w-full md:w-auto shrink-0 md:text-right border-t md:border-t-0 md:border-l border-[#F6D884] pt-3 md:pt-0 md:pl-6 flex flex-col gap-1">
+<div class="text-[15px] font-semibold text-[#0F2137]">Decided by Evidence gate</div>
+<div class="text-[13px] text-[#5B6B7B] font-medium">Reason code: EVIDENCE_INSUFFICIENT</div>
+</div>
+</section>
+<!-- 5. Gate Order Strip ("How the decision was reached") -->
+<section class="bg-white border border-[#E2E8F0] rounded-[12px] p-5 shadow-sm flex flex-col gap-4">
+<div>
+<h2 class="text-[18px] font-bold text-[#0F2137]">How the decision was reached</h2>
+<p class="text-[12px] text-[#5B6B7B] mt-0.5">Gates run in this order. The first one that triggers decides.</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+<!-- Gate 1 -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-3 flex flex-col justify-between">
+<div class="text-[13px] font-medium text-[#5B6B7B] mb-2">1. Risk gate (PD &lt; τ?)</div>
+<div>
+<div class="text-[13px] font-semibold text-[#1E8A3E] flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check_circle</span> PASSED
+            </div>
+<div class="text-[12px] text-[#5B6B7B] mt-0.5">18.5% &lt; 25.0%</div>
+</div>
+</div>
+<!-- Gate 2 -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-3 flex flex-col justify-between">
+<div class="text-[13px] font-medium text-[#5B6B7B] mb-2">2. Policy: ineligible?</div>
+<div>
+<div class="text-[13px] font-semibold text-[#1E8A3E] flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check_circle</span> PASSED
+            </div>
+<div class="text-[12px] text-[#5B6B7B] mt-0.5">No exclusions</div>
+</div>
+</div>
+<!-- Gate 3 -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-3 flex flex-col justify-between">
+<div class="text-[13px] font-medium text-[#5B6B7B] mb-2">3. Policy: unresolved?</div>
+<div>
+<div class="text-[13px] font-semibold text-[#1E8A3E] flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check_circle</span> PASSED
+            </div>
+<div class="text-[12px] text-[#5B6B7B] mt-0.5">Data verified</div>
+</div>
+</div>
+<!-- Gate 4 -->
+<div class="bg-[#FFFDF5] border border-[#FFE082] rounded-[8px] p-3 flex flex-col justify-between">
+<div class="text-[13px] font-medium text-[#0F2137] mb-2">4. Evidence gate (E ≥ τ_E?)</div>
+<div>
+<div class="text-[13px] font-bold text-[#9A6700] flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">warning</span> TRIGGERED
+            </div>
+<div class="text-[12px] font-medium text-[#9A6700] mt-0.5">0.375 &lt; 0.50</div>
+</div>
+</div>
+<!-- Terminal Step -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-3 flex flex-col justify-between opacity-70">
+<div class="text-[13px] font-medium text-[#5B6B7B] mb-2">5. Approve</div>
+<div>
+<div class="text-[13px] font-medium text-[#5B6B7B] flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">block</span> Not reached
+            </div>
+<div class="text-[12px] text-[#5B6B7B] mt-0.5">Halted at gate 4</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. Three Domain Panels (Risk, Evidence, Policy) -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- PANEL 1: RISK LAYER -->
+<article class="bg-white border border-[#E2E8F0] rounded-[12px] border-t-[3px] border-t-[#2E5EAA] p-5 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+<h3 class="text-[15px] font-bold text-[#2E5EAA] tracking-wide uppercase">RISK LAYER</h3>
+<span class="text-[12px] text-[#5B6B7B]">PD Metric</span>
+</div>
+<div class="mt-4 mb-3">
+<div class="text-[32px] font-bold text-[#0F2137] leading-none">18.5%</div>
+<p class="text-[13px] text-[#5B6B7B] mt-1">default probability</p>
+</div>
+<!-- Compact Horizontal Gauge -->
+<div class="mb-5">
+<div class="flex justify-between text-[12px] text-[#5B6B7B] mb-1">
+<span class="">0%</span>
+<span class="font-medium text-[#DC2626]">τ = 25.0% cutoff</span>
+<span class="">50%</span>
+</div>
+<div class="h-2 w-full bg-[#E2E8F0] rounded-full relative overflow-hidden">
+<div class="h-full bg-[#2E5EAA] rounded-full" style="width: 37%;"></div>
+<div class="absolute top-0 bottom-0 left-1/2 w-0.5 bg-[#DC2626]" title="Threshold marker"></div>
+</div>
+<div class="text-[12px] text-[#1E8A3E] font-medium mt-1">Passes cutoff threshold</div>
+</div><div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-3 mb-4 flex flex-col gap-2"><div class="flex items-center justify-between"><span class="text-[12px] font-semibold text-[#2E5EAA] uppercase tracking-wide">Synthetic Gig Credit Score</span><span class="inline-flex items-center text-[11px] font-semibold text-[#2E5EAA] bg-[#E6F4F4] px-1.5 py-0.5 rounded">Fair / Prime-Adjacent</span></div><div class="flex items-baseline gap-1.5"><span class="text-[28px] font-bold text-[#0F2137] leading-none">642</span><span class="text-[13px] font-medium text-[#5B6B7B]">/ 900</span><span class="text-[12px] text-[#5B6B7B] ml-auto">Band: 300–900</span></div><div><div class="flex justify-between text-[11px] text-[#5B6B7B] mb-1"><span>300 (Subprime)</span><span>650 (Prime)</span><span>900</span></div><div class="h-2 w-full bg-[#E2E8F0] rounded-full relative overflow-hidden"><div class="h-full bg-[#2E5EAA] rounded-full" style="width: 57%;"></div></div></div><p class="text-[11px] text-[#5B6B7B] leading-tight mt-0.5">Derived proxy score generated from thin-file cash flow &amp; default probability (PD 18.5%). Synthetic research metric.</p></div>
+<!-- 5 Clean Rows -->
+<dl class="space-y-2.5 pt-2 border-t border-[#F1F5F9]">
+<div class="flex justify-between items-center text-[13px]">
+<dt class="text-[#5B6B7B]">Monthly Income</dt>
+<dd class="text-[15px] font-semibold text-[#0F2137]">₹30,000</dd>
+</div>
+<div class="flex justify-between items-center text-[13px]">
+<dt class="text-[#5B6B7B]">Expense Ratio</dt>
+<dd class="text-[15px] font-semibold text-[#0F2137]">60.0%</dd>
+</div>
+<div class="flex justify-between items-center text-[13px]">
+<dt class="text-[#5B6B7B]">Income Volatility</dt>
+<dd class="text-[15px] font-semibold text-[#0F2137]">0.25</dd>
+</div>
+<div class="flex justify-between items-center text-[13px]">
+<dt class="text-[#5B6B7B]">Lowest Balance</dt>
+<dd class="text-[15px] font-semibold text-[#0F2137]">₹15,000</dd>
+</div>
+<div class="flex justify-between items-center text-[13px] pt-1">
+<dt class="text-[#5B6B7B]">Risk drivers (SHAP)</dt>
+<dd class="text-[12px] text-[#5B6B7B] text-right">Not available in current implementation</dd>
+</div>
+</dl>
+</div>
+</article>
+<!-- PANEL 2: EVIDENCE LAYER -->
+<article class="bg-white border border-[#E2E8F0] rounded-[12px] border-t-[3px] border-t-[#B9770E] p-5 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+<h3 class="text-[15px] font-bold text-[#B9770E] tracking-wide uppercase">EVIDENCE LAYER</h3>
+<span class="text-[12px] text-[#9A6700] font-medium">Requires τ_E ≥ 0.500</span>
+</div>
+<div class="mt-4 mb-4">
+<div class="flex items-baseline gap-1">
+<span class="text-[32px] font-bold text-[#9A6700] leading-none">0.375</span>
+<span class="text-[15px] font-medium text-[#5B6B7B]">/ 1.000</span>
+</div>
+<p class="text-[13px] text-[#5B6B7B] mt-1">Deficit: -0.125 below sufficiency threshold</p>
+</div>
+<!-- Segment Breakdown Rows -->
+<div class="space-y-2.5 pt-2 border-t border-[#F1F5F9]">
+<div class="flex justify-between items-center text-[13px]">
+<span class="text-[#5B6B7B]">History (3 mo / 12 mo)</span>
+<span class="text-[15px] font-semibold text-[#0F2137]">+0.125</span>
+</div>
+<div class="flex justify-between items-center text-[13px]">
+<span class="text-[#5B6B7B]">AA completeness (50%)</span>
+<span class="text-[15px] font-semibold text-[#0F2137]">+0.125</span>
+</div>
+<div class="flex justify-between items-center text-[13px]">
+<span class="text-[#5B6B7B]">ULI completeness (50%)</span>
+<span class="text-[15px] font-semibold text-[#0F2137]">+0.125</span>
+</div>
+</div>
+</div>
+<div class="mt-6 pt-3 border-t border-[#F1F5F9]">
+<p class="text-[12px] text-[#5B6B7B] italic">
+            Measures confidence in the decision, not creditworthiness.
+          </p>
+</div>
+</article>
+<!-- PANEL 3: POLICY LAYER -->
+<article class="bg-white border border-[#E2E8F0] rounded-[12px] border-t-[3px] border-t-[#6B4C9A] p-5 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+<h3 class="text-[15px] font-bold text-[#6B4C9A] tracking-wide uppercase">POLICY LAYER</h3>
+<div class="flex items-center gap-1 text-[15px] font-bold text-[#1E8A3E]">
+<span class="material-symbols-outlined text-[18px]">check_circle</span> Satisfied
+            </div>
+</div>
+<div class="mt-3 space-y-3">
+<!-- JanSamarth Scheme -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-3">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[13px] font-semibold text-[#0F2137]">JanSamarth Scheme</span>
+<span class="text-[12px] font-medium text-[#1E8A3E]">Passed</span>
+</div>
+<p class="text-[12px] text-[#5B6B7B] leading-snug">
+                Age 18–60, income ≤ ₹10L, non-farm business (&lt;UNVERIFIED-JS-001..003&gt;)
+              </p>
+</div>
+<!-- PMMY Scheme -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-3">
+<div class="flex items-center justify-between mb-1">
+<span class="text-[13px] font-semibold text-[#0F2137]">PMMY Scheme</span>
+<span class="text-[12px] font-medium text-[#1E8A3E]">Passed</span>
+</div>
+<p class="text-[12px] text-[#5B6B7B] leading-snug">
+                Age 18–65, income ≤ ₹10L, non-agri (&lt;UNVERIFIED-PMMY-001..003&gt;)
+              </p>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#F1F5F9] space-y-1">
+<div class="text-[12px] text-[#0F2137] font-medium">Eligible under any scheme (Kleene OR).</div>
+<div class="text-[12px] text-[#5B6B7B]">Prototype placeholder rules, not official criteria.</div>
+</div>
+</article>
+</section>
+<!-- 7. "Why this decision?" Card -->
+<section class="bg-white border border-[#E2E8F0] rounded-[12px] p-6 shadow-sm">
+<h2 class="text-[18px] font-semibold text-[#0F2137] mb-3">Why this decision?</h2>
+<div class="flex flex-col md:flex-row gap-6 items-start justify-between">
+<p class="text-[15px] leading-relaxed text-[#0F2137] max-w-3xl">
+          The applicant meets the default risk threshold with an estimated probability of 18.5%. While the prototype scheme rules are satisfied, the available history of 3 months does not provide sufficient evidence to support an automated approval. The application is therefore referred for manual review due to low evidence quality.
+        </p>
+<div class="bg-[#FFFDF5] border border-[#FFE082] rounded-[8px] p-3.5 shrink-0 max-w-xs text-[#0F2137]">
+<div class="flex items-center gap-1.5 text-[#9A6700] text-[13px] font-semibold mb-1">
+<span class="material-symbols-outlined text-[16px]">info</span>
+            Policy Note
+          </div>
+<div class="text-[12px] text-[#5B6B7B] leading-normal">
+            Passing the risk gate does not guarantee approval.
+          </div>
+</div>
+</div>
+</section>
+<!-- 8. "Same applicant, different modes" Table -->
+<section class="bg-white border border-[#E2E8F0] rounded-[12px] p-6 shadow-sm flex flex-col gap-4">
+<div>
+<h2 class="text-[18px] font-semibold text-[#0F2137]">Same applicant, different modes</h2>
+<p class="text-[12px] text-[#5B6B7B] mt-0.5">Same applicant, different layers, different outcomes.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-[#E2E8F0] text-[13px] font-medium text-[#5B6B7B]">
+<th class="py-2.5 px-3">Mode</th>
+<th class="py-2.5 px-3">Layers used</th>
+<th class="py-2.5 px-3">Decision</th>
+<th class="py-2.5 px-3">Reason</th>
+<th class="py-2.5 px-3">Ignores</th>
+</tr>
+</thead>
+<tbody class="text-[13px] divide-y divide-[#F1F5F9]">
+<tr class="hover:bg-[#F8FAFC]">
+<td class="py-3 px-3 font-semibold text-[#0F2137]">D1</td>
+<td class="py-3 px-3 text-[#5B6B7B]">Risk only</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-[12px] font-semibold text-[#1E8A3E] bg-[#EAF5EC] px-2 py-0.5 rounded">
+                  APPROVE
+                </span>
+</td>
+<td class="py-3 px-3 text-[#0F2137]">PD &lt; 25.0%</td>
+<td class="py-3 px-3 text-[#5B6B7B]">Evidence, policy</td>
+</tr>
+<tr class="hover:bg-[#F8FAFC]">
+<td class="py-3 px-3 font-semibold text-[#0F2137]">D2</td>
+<td class="py-3 px-3 text-[#5B6B7B]">Risk + Policy</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-[12px] font-semibold text-[#1E8A3E] bg-[#EAF5EC] px-2 py-0.5 rounded">
+                  APPROVE
+                </span>
+</td>
+<td class="py-3 px-3 text-[#0F2137]">PD &lt; 25.0% &amp; Policy satisfied</td>
+<td class="py-3 px-3 text-[#5B6B7B]">Evidence</td>
+</tr>
+<tr class="hover:bg-[#F8FAFC]">
+<td class="py-3 px-3 font-semibold text-[#0F2137]">D3</td>
+<td class="py-3 px-3 text-[#5B6B7B]">Risk + Evidence</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-[12px] font-semibold text-[#9A6700] bg-[#FFF4D6] px-2 py-0.5 rounded">
+                  REVIEW
+                </span>
+</td>
+<td class="py-3 px-3 text-[#0F2137]">Evidence &lt; 0.50</td>
+<td class="py-3 px-3 text-[#5B6B7B]">Policy</td>
+</tr>
+<tr class="bg-[#F0FDFA] border-2 border-[#0E7C7E]/30 rounded-lg">
+<td class="py-3 px-3 font-bold text-[#0E7C7E]">D4 (Active)</td>
+<td class="py-3 px-3 font-medium text-[#0F2137]">All three layers</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-[12px] font-bold text-[#9A6700] bg-[#FFF4D6] px-2 py-0.5 rounded border border-[#FFE082]">
+                  REVIEW
+                </span>
+</td>
+<td class="py-3 px-3 font-medium text-[#0F2137]">Evidence &lt; 0.50</td>
+<td class="py-3 px-3 text-[#0F2137] font-medium">Nothing</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- 9. Technical Trace (Clean white card, collapsible) -->
+<details class="bg-white border border-[#E2E8F0] rounded-[12px] p-5 shadow-sm group">
+<summary class="flex items-center justify-between cursor-pointer list-none select-none">
+<span class="text-[15px] font-semibold text-[#0F2137] flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-[#5B6B7B] group-open:rotate-90 transition-transform">chevron_right</span>
+          Technical trace &amp; explanation payload (Click to expand)
+        </span>
+<span class="text-[12px] text-[#5B6B7B]">JSON Audit</span>
+</summary>
+<div class="mt-4 pt-4 border-t border-[#E2E8F0] flex flex-col gap-3">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-[12px] text-[#5B6B7B]">
+<div class=""><span class="font-medium text-[#0F2137]">Applicant ID:</span> APP-001</div>
+<div class=""><span class="font-medium text-[#0F2137]">Timestamp:</span> 2026-09-22T14:38:12Z</div>
+<div class=""><span class="font-medium text-[#0F2137]">Request ID:</span> req_2026_0922_c9a184e</div>
+<div class=""><span class="font-medium text-[#0F2137]">Model status:</span> heuristic_phase1</div>
+</div>
+<div class="relative bg-[#F8FAFC] border border-[#E2E8F0] rounded-[8px] p-4 overflow-x-auto">
+<div class="flex justify-end mb-2">
+<button class="px-2.5 py-1 text-[12px] font-medium rounded-[8px] border border-[#E2E8F0] bg-white text-[#0F2137] hover:bg-[#F1F5F9] transition-colors flex items-center gap-1" onclick="navigator.clipboard.writeText(document.getElementById('trace-json').innerText)">
+<span class="material-symbols-outlined text-[14px]">content_copy</span> Copy JSON
+            </button>
+</div>
+<pre class="text-[12px] leading-relaxed text-[#0F2137]" id="trace-json">{
+  "request_id": "req_2026_0922_c9a184e",
+  "applicant_id": "APP-001",
+  "mode": "D4",
+  "thresholds": { "tau": 0.25, "tau_e": 0.50 },
+  "layers": {
+    "risk": { "pd": 0.185, "gate_passed": true, "model_status": "heuristic_phase1" },
+    "evidence": { "score": 0.375, "status": "INSUFFICIENT", "breakdown": { "history": 0.125, "aa": 0.125, "uli": 0.125 } },
+    "policy": { "combined_state": "SATISFIED", "schemes": { "jan_samarth": "SATISFIED", "pmmy": "SATISFIED" } }
+  },
+  "decision": { "choice": "REVIEW", "reason_code": "EVIDENCE_INSUFFICIENT" }
+}</pre>
+</div>
+</div>
+</details>
+<!-- 10. Actions Bar -->
+<section class="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+<a class="text-[13px] font-medium text-[#5B6B7B] hover:text-[#0F2137] transition-colors" data-path="assessment" href="#">
+        ← Back to form
+      </a>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-[13px] font-medium text-[#0F2137] bg-white border border-[#E2E8F0] rounded-[8px] hover:bg-[#F8FAFC] transition-colors" type="button">
+          Download JSON
+        </button>
+<a class="px-4 py-2 text-[13px] font-semibold text-white bg-[#0E7C7E] rounded-[8px] hover:bg-[#0b6466] transition-colors shadow-sm" data-path="assessment" href="#">
+          Assess another applicant
+        </a>
+</div>
+</section>
+</main>
+<!-- 11. Footer -->
+<footer class="w-full bg-white border-t border-[#E2E8F0] py-4 mt-auto">
+<div class="max-w-7xl mx-auto px-6 text-[12px] text-[#5B6B7B] text-center md:text-left">
+      Synthetic data (SynthGigCredit-IN-v1). Income, age and occupation grounded in Afsharinia &amp; Gurtoo (2025). ML pipeline checked on Home Credit.
+    </div>
+</footer>
+</body></html>

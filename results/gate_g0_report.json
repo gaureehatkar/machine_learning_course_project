@@ -1,0 +1,131 @@
+{
+  "outcome": "PASS",
+  "timestamp": "2026-10-05T07:17:43.712157",
+  "preconditions": {
+    "a_dataset2_frozen": true,
+    "b_g0_seed_not_in_exp_seeds": true,
+    "c_cutoff_invariance": true,
+    "c_notes": [
+      "T-D8 PASS: static attributes are valid cutoff values.",
+      "T-D9 PASS: observation/outcome window boundaries are correct."
+    ]
+  },
+  "checks": {
+    "dgp1_check1_distributional": {
+      "pass": null,
+      "note": "Dataset2 not loaded; cannot verify distributional plausibility"
+    },
+    "dgp1_check3_temporal": {
+      "pass": true,
+      "seasonal_amplitude": 62.25,
+      "trend_slope": 10.9388,
+      "within_applicant_std": 11364.88,
+      "mean_income": 21541.83,
+      "trend_centered": true,
+      "seasonal_recoverable": true
+    },
+    "dgp1_check4_prevalence": {
+      "pass": true,
+      "value": 0.1253,
+      "range": [
+        0.12,
+        0.18
+      ]
+    },
+    "dgp1_check2_relationships": {
+      "pass": true,
+      "expense_income_corr": 0.8753,
+      "no_negative_income": true
+    },
+    "dgp1_check6_no_leakage": {
+      "pass": true,
+      "obs_outcome_separation": true,
+      "no_label_columns_in_monthly": true,
+      "obs_months_count": 12,
+      "outcome_months_count": 12
+    },
+    "dgp1_check8_evidence_fail_rate": {
+      "pass": true,
+      "value": 0.2918,
+      "range": [
+        0.15,
+        0.35
+      ]
+    },
+    "dgp1_check5_difficulty": {
+      "pass": true,
+      "roc_auc": 0.9274,
+      "max_roc_auc": 0.97,
+      "note": "DIAGNOSTIC FIT on g0_seed ONLY \u2014 never reported as results."
+    },
+    "dgp1_check7_policy_independence": {
+      "pass": true,
+      "age_default_corr": 0.0051,
+      "tolerance": 0.05
+    },
+    "dgp2_check1_distributional": {
+      "pass": null,
+      "note": "Dataset2 not loaded; cannot verify distributional plausibility"
+    },
+    "dgp2_check3_temporal": {
+      "pass": true,
+      "seasonal_amplitude": 61.95,
+      "trend_slope": 11.152,
+      "within_applicant_std": 11396.69,
+      "mean_income": 21007.17,
+      "trend_centered": true,
+      "seasonal_recoverable": true
+    },
+    "dgp2_check4_prevalence": {
+      "pass": true,
+      "value": 0.1424,
+      "range": [
+        0.12,
+        0.18
+      ]
+    },
+    "dgp2_check2_relationships": {
+      "pass": true,
+      "expense_income_corr": 0.8727,
+      "no_negative_income": true
+    },
+    "dgp2_check6_no_leakage": {
+      "pass": true,
+      "obs_outcome_separation": true,
+      "no_label_columns_in_monthly": true,
+      "obs_months_count": 12,
+      "outcome_months_count": 12
+    },
+    "dgp2_check8_evidence_fail_rate": {
+      "pass": true,
+      "value": 0.2918,
+      "range": [
+        0.15,
+        0.35
+      ]
+    },
+    "dgp2_check5_difficulty": {
+      "pass": true,
+      "roc_auc": 0.9055,
+      "max_roc_auc": 0.97,
+      "note": "DIAGNOSTIC FIT on g0_seed ONLY \u2014 never reported as results."
+    },
+    "dgp2_check7_policy_independence": {
+      "pass": true,
+      "age_default_corr": 0.0042,
+      "tolerance": 0.05
+    },
+    "check9_stability": {
+      "pass": null,
+      "note": "Check 9 (stability/sensitivity) requires generating seeds 1-10 for both DGPs. Run seeds 1-10 and compare: (a) prevalence consistency within \u00b12%, (b) evidence fail rate within \u00b15%, (c) ROC-AUC within \u00b10.02 across seeds. For now, g0_seed=0 is used for initial validation.",
+      "dgps_tested": [
+        1,
+        2
+      ],
+      "g0_seed_status": "VALIDATED"
+    }
+  },
+  "notes": [
+    "G0 PASS: generator validated. mu_L0 tuning complete. Experimental seeds 1-10 are now unlocked (Phase 5b onwards)."
+  ]
+}

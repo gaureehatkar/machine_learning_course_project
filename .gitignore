@@ -1,0 +1,100 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ── Data files (too large for git) ──────────────────────────────────────────
+# Raw CSVs
+data/*.csv
+data/*.zip
+data/authentic/*.csv
+data/authentic/*.xlsx
+
+# Synthetic parquet files (regenerate with: python generate_all_seeds.py)
+data/synthetic/
+data/processed/
+data/raw/
+
+# Dataset 2 raw files — download from Mendeley DOI: 10.17632/j6hd2dfsh8.1
+data/raw/dataset2/
+
+# ── Models ───────────────────────────────────────────────────────────────────
+models/*.pkl
+models/*.json
+*.pkl
+*.joblib
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+build_features*.log
+experiments.log
+
+# ── Temp / test scripts (generated during session) ───────────────────────────
+test_seed_generation.py
+test_api_decide.py
+test_api_decide2.py
+generate_all_seeds.py
+build_all_features.py
+run_all_experiments.py
+wait_for_completion.py
+monitor_progress.py
+
+# ── Zip archives ─────────────────────────────────────────────────────────────
+*.zip
+SynthGigCredit-main/
+SynthGigCredit-main.zip
+
+# ── Node / Frontend ──────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+"ML Froent end/ml-frontend/dist/"
+"ML Froent end/ml-frontend/.vite/"
+"ML Froent end/ml-frontend/node_modules/"
+
+# ── Database ─────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+
+# ── Docker ───────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ── Large data files (never track in git) ────────────────────────────────────
+*.parquet
+*.xlsx
+*.xls
+*.csv
+*.sav
+data/
