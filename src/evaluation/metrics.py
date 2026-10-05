@@ -192,6 +192,34 @@ def review_efficiency(
     return float(y_true[referred].mean())
 
 
+def gini(y_true: np.ndarray, y_score: np.ndarray) -> float:
+    """Gini coefficient = 2*AUC - 1. Measures inequality of risk scores."""
+    return 2.0 * roc_auc(y_true, y_score) - 1.0
+
+
+def ks_statistic(y_true: np.ndarray, y_score: np.ndarray) -> float:
+    """
+    Kolmogorov-Smirnov statistic: max_t |F_default(t) - F_nondefault(t)|.
+    Maximum vertical distance between CDFs of default and non-default groups.
+    """
+    y_true = np.asarray(y_true, dtype=np.float64)
+    y_score = np.asarray(y_score, dtype=np.float64)
+    
+    default_scores = y_score[y_true == 1]
+    nondefault_scores = y_score[y_true == 0]
+    
+    if len(default_scores) == 0 or len(nondefault_scores) == 0:
+        return float("nan")
+    
+    # Compute empirical CDFs at all unique thresholds
+    all_scores = np.sort(np.unique(np.concatenate([default_scores, nondefault_scores])))
+    
+    cdf_default = np.searchsorted(np.sort(default_scores), all_scores, side="right") / len(default_scores)
+    cdf_nondefault = np.searchsorted(np.sort(nondefault_scores), all_scores, side="right") / len(nondefault_scores)
+    
+    return float(np.max(np.abs(cdf_default - cdf_nondefault)))
+
+
 # ── All metrics in one call ───────────────────────────────────────────────────
 
 def compute_all_metrics(
@@ -210,4 +238,6 @@ def compute_all_metrics(
     slope, intercept = calibration_slope_intercept(y_true, pd_calibrated)
     m["calibration_slope"] = slope
     m["calibration_intercept"] = intercept
+    m["gini"] = gini(y_true, pd_calibrated)
+    m["ks"] = ks_statistic(y_true, pd_calibrated)
     return m
