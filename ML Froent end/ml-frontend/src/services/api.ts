@@ -15,7 +15,24 @@ import {
   mockAssess,
 } from '@/data/mockData';
 
-// ── Config ────────────────────────────────────────────────────────────────────
+// ── Occupation normalisation ─────────────────────────────────────────────────
+// Frontend dropdown values → backend rule-engine values
+const OCCUPATION_MAP: Record<string, string> = {
+  'ride-hailing':       'ride_hailing',
+  'ride_hailing':       'ride_hailing',
+  'delivery':           'delivery',
+  'freelance':          'freelance_services',
+  'freelance_services': 'freelance_services',
+  'retail':             'retail_micro',
+  'retail_micro':       'retail_micro',
+  'agricultural':       'agri_labour',
+  'agri_labour':        'agri_labour',
+  'unknown':            'ride_hailing',
+};
+
+function normaliseOccupation(v: string): string {
+  return OCCUPATION_MAP[v?.toLowerCase()?.trim()] ?? v;
+}
 
 export const BASE_URL: string =
   (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000/api';
@@ -41,6 +58,7 @@ export interface BackendDecisionResponse {
   policy_gate: BackendGateResult;
   risk_rank: BackendGateResult;
   risk_score: number;
+  risk_source: string;   // "model_xgb" | "model_lr" | "heuristic" | "override_*"
   credit_score: number;
   credit_score_display: {
     score: number;
@@ -50,6 +68,8 @@ export interface BackendDecisionResponse {
     phase: string;
     disclaimer: string;
   } | null;
+  tau_used: number;
+  tau_e_used: number;
   explanation: Record<string, unknown> | null;
   model_version: string;
   mode: string;
@@ -260,17 +280,18 @@ export const assessmentApi = {
         uli_completeness: Math.max(0, Math.min(1, state.evidence.uliCompleteness)),
         age_policy: Math.max(18, state.applicant.ageUnknown ? 30 : state.applicant.age),
         income_policy: Math.max(1, state.finances.monthlyIncome),
-        occupation: state.applicant.occupation || 'ride_hailing',
-        nonfarm_engaged: 1,
+        // [FIX-5] normalise occupation to rule-engine format
+        occupation: normaliseOccupation(state.applicant.occupation || 'ride_hailing'),
+        nonfarm_engaged: normaliseOccupation(state.applicant.occupation || '') === 'agri_labour' ? 0 : 1,
         e_shram_policy: state.applicant.eshramRegistered ? 1 : 0,
         pd_lr: null,
         pd_xgb: null,
         applicant_id: state.applicant.id || `APP-${Date.now()}`,
         decision_date: new Date().toISOString().split('T')[0],
       },
-      decision_mode: 'production',
+      decision_mode: state.decisionMode || 'D4',
       explain: true,
-      // Pass user-defined thresholds when provided
+      // [FIX-3] tau / tau_e are top-level DecisionRequest fields, not nested
       ...(thresholds?.tau !== undefined && { tau: thresholds.tau }),
       ...(thresholds?.tau_e !== undefined && { tau_e: thresholds.tau_e }),
     };

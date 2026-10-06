@@ -39,15 +39,18 @@ import {
   LabelList,
 } from 'recharts';
 
+// NOTE: Monthly assessment trend is from session history only — no historical backend data.
+// These are placeholder zeros until backend exposes a history endpoint.
 const assessmentMonths = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
 
 const monthlyAssessmentData = assessmentMonths.map((m) => ({
   month: m,
-  Approved: Math.round(60 + Math.random() * 40),
-  Review: Math.round(20 + Math.random() * 30),
-  Declined: Math.round(15 + Math.random() * 25),
+  Approved: 0,
+  Review: 0,
+  Declined: 0,
 }));
 
+// Decision mode usage — illustrative placeholder, not from live backend
 const decisionModeData = [
   { name: 'D1 Risk only', value: 12, color: '#2E5EAA' },
   { name: 'D2 Risk+Policy', value: 23, color: '#B9770E' },
@@ -55,13 +58,12 @@ const decisionModeData = [
   { name: 'D4 All layers', value: 34, color: '#0E7C7E' },
 ];
 
+// NOTE: Gate pass rates below are illustrative placeholders — not from live backend.
+// Connect to /api/evaluate_batch when batch history is available.
 const gatePassData = [
-  { gate: 'Identity', pass: 96 },
-  { gate: 'Platform Income', pass: 82 },
-  { gate: 'Volatility Stress', pass: 74 },
-  { gate: 'Evidence Quality', pass: 88 },
-  { gate: 'Policy Eligibility', pass: 91 },
-  { gate: 'Final Adjudication', pass: 93 },
+  { gate: 'Evidence Quality', pass: 71 },   // ~29% fail rate from G0 report
+  { gate: 'Policy Eligibility', pass: 85 },
+  { gate: 'Risk (PD < τ)', pass: 70 },       // design target: 70% approval
 ];
 
 function StatusBadge({ status }: { status: 'approve' | 'review' | 'decline' }) {
@@ -214,7 +216,7 @@ export default function DashboardPage() {
           <div className="rounded-lg border border-[#E2E8F0] bg-white p-5 lg:col-span-2">
             <div className="mb-4">
               <h2 className="text-base font-semibold text-text-primary">Monthly Assessments Trend</h2>
-              <p className="text-sm text-text-secondary">Volume & outcome mix</p>
+              <p className="text-sm text-text-secondary">Volume &amp; outcome mix — <span className="text-[#9AABB7] text-xs">session history only; no historical backend data</span></p>
             </div>
             <ResponsiveContainer width="100%" height={288}>
               <AreaChart data={monthlyAssessmentData}>
@@ -297,10 +299,11 @@ export default function DashboardPage() {
           <div className="rounded-lg border border-[#E2E8F0] bg-white p-5">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-text-primary">Risk model — ROC curve</h2>
+                <h2 className="text-base font-semibold text-text-primary">Risk model — ROC curve (T1 Home Credit)</h2>
+                <p className="text-xs text-[#5B6B7B] mt-0.5">XGBoost-C authentic experiment result</p>
               </div>
               <span className="inline-flex items-center rounded-full bg-domain-risk/tint border border-domain-risk-border px-2.5 py-1 text-xs font-semibold text-domain-risk">
-                AUC 0.87
+                AUC 0.7568
               </span>
             </div>
             <ResponsiveContainer width="100%" height={256}>
@@ -352,11 +355,30 @@ export default function DashboardPage() {
                 />
               </LineChart>
             </ResponsiveContainer>
+            {/* Real T1 metrics from results/authentic/T1_results.json */}
+            <div className="mt-3 pt-3 border-t border-[#F1F5F9] grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-[11px] text-[#5B6B7B]">XGBoost ROC-AUC</p>
+                <p className="text-[14px] font-bold text-[#0F2137]">0.7568</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[#5B6B7B]">LR ROC-AUC</p>
+                <p className="text-[14px] font-bold text-[#0F2137]">0.7383</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-[#5B6B7B]">Prevalence (T1)</p>
+                <p className="text-[14px] font-bold text-[#0F2137]">8.07%</p>
+              </div>
+            </div>
+            <p className="text-[10px] text-[#9AABB7] mt-1 text-center">
+              Source: results/authentic/T1_results.json — Home Credit authentic experiment
+            </p>
           </div>
 
           <div className="rounded-lg border border-[#E2E8F0] bg-white p-5">
             <div className="mb-4">
               <h2 className="text-base font-semibold text-text-primary">Gate-level pass rates</h2>
+              <p className="text-xs text-[#9AABB7]">Illustrative — connect /api/evaluate_batch for live rates</p>
             </div>
             <ResponsiveContainer width="100%" height={256}>
               <BarChart
