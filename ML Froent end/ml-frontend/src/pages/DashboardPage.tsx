@@ -164,7 +164,27 @@ export default function DashboardPage() {
               Last 30 days
               <ChevronDown className="h-4 w-4" />
             </button>
-            <button className="inline-flex items-center gap-2 rounded-full bg-action-primary px-4 py-2 text-sm font-medium text-white hover:bg-action-primary-hover">
+            <button
+              onClick={() => {
+                if (history.length === 0) { alert('No assessments to export yet. Run an assessment first.'); return; }
+                const headers = ['ID','Applicant ID','Name','Outcome','Mode','Risk Score','Evidence Score','Policy Score','Final Score','Date'];
+                const rows = history.map(e => [
+                  e.id, e.applicantId, e.applicantName, e.outcome.toUpperCase(),
+                  e.decisionMode,
+                  ((1 - (e.scores.riskScore ?? 0.5)) * 100).toFixed(1) + '%',
+                  ((e.scores.evidenceScore ?? 0) * 100).toFixed(0) + '%',
+                  ((e.scores.policyScore ?? 0) * 100).toFixed(0) + '%',
+                  ((e.scores.finalScore ?? 0) * 100).toFixed(0) + '%',
+                  new Date(e.createdAt).toLocaleString(),
+                ]);
+                const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `synthgig_decisions_${Date.now()}.csv`; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="inline-flex items-center gap-2 rounded-full bg-action-primary px-4 py-2 text-sm font-medium text-white hover:bg-action-primary-hover">
               <Download className="h-4 w-4" />
               Export
             </button>
