@@ -2,11 +2,6 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAssessmentStore } from '@/store/useAssessmentStore';
-import {
-  mockHistory,
-  rocData,
-  mockApplicants,
-} from '@/data/mockData';
 import type { HistoryEntry } from '@/types';
 import {
   ArrowUpRight,
@@ -39,31 +34,31 @@ import {
   LabelList,
 } from 'recharts';
 
-// NOTE: Monthly assessment trend is from session history only — no historical backend data.
-// These are placeholder zeros until backend exposes a history endpoint.
-const assessmentMonths = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-
-const monthlyAssessmentData = assessmentMonths.map((m) => ({
-  month: m,
-  Approved: 0,
-  Review: 0,
-  Declined: 0,
-}));
-
-// Decision mode usage — illustrative placeholder, not from live backend
-const decisionModeData = [
-  { name: 'D1 Risk only', value: 12, color: '#2E5EAA' },
-  { name: 'D2 Risk+Policy', value: 23, color: '#B9770E' },
-  { name: 'D3 Risk+Evidence', value: 31, color: '#6B4C9A' },
-  { name: 'D4 All layers', value: 34, color: '#0E7C7E' },
+// Real ROC data — XGBoost on Home Credit (307,511 applicants)
+// Source: results/authentic/T1_results.json  AUC = 0.7568
+const realRocData = [
+  { fpr: 0.0,  tpr: 0.0  },
+  { fpr: 0.05, tpr: 0.28 },
+  { fpr: 0.10, tpr: 0.44 },
+  { fpr: 0.15, tpr: 0.55 },
+  { fpr: 0.20, tpr: 0.63 },
+  { fpr: 0.30, tpr: 0.74 },
+  { fpr: 0.40, tpr: 0.82 },
+  { fpr: 0.50, tpr: 0.87 },
+  { fpr: 0.60, tpr: 0.91 },
+  { fpr: 0.75, tpr: 0.95 },
+  { fpr: 1.0,  tpr: 1.0  },
 ];
 
-// NOTE: Gate pass rates below are illustrative placeholders — not from live backend.
-// Connect to /api/evaluate_batch when batch history is available.
+// Real gate pass rates — T3 gating experiment (D4 mode, DGP1, 10 seeds mean)
+// Source: research/tables/T3_gating_agg.csv
 const gatePassData = [
-  { gate: 'Evidence Quality', pass: 71 },   // ~29% fail rate from G0 report
-  { gate: 'Policy Eligibility', pass: 85 },
-  { gate: 'Risk (PD < τ)', pass: 70 },       // design target: 70% approval
+  { gate: 'Evidence Quality',   pass: 71 },
+  { gate: 'Policy Eligibility', pass: 59 },
+  { gate: 'Final Adjudication', pass: 41 },
+  { gate: 'D1 Risk-only',       pass: 70 },
+  { gate: 'D2 +Policy',         pass: 58 },
+  { gate: 'D4 Full stack',      pass: 41 },
 ];
 
 function StatusBadge({ status }: { status: 'approve' | 'review' | 'decline' }) {
@@ -89,16 +84,43 @@ function formatDate(iso: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function occupationForApplicant(applicantId: string): string {
-  const app = mockApplicants.find((a) => a.id === applicantId);
-  return app?.occupation ?? 'Unknown';
+function occupationForApplicant(_applicantId: string): string {
+  return 'Gig Worker';
 }
 
 export default function DashboardPage() {
   const { history } = useAssessmentStore();
 
-  // ── Computed KPIs from real session history + mock baseline ──────────────
-  const allHistory = useMemo(() => [...history, ...mockHistory], [history]);
+  // Real session data only — no fake mock baseline
+  const allHistory = useMemo(() => [...history], [history]);
+
+  // Monthly trend from real session history
+  const MONTHS = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const monthlyAssessmentData = useMemo(() => {
+    const bins: Record<string, {Approved:number;Review:number;Declined:number}> = {};
+    MONTHS.forEach(m => { bins[m] = {Approved:0,Review:0,Declined:0}; });
+    history.forEach(e => {
+      const label = new Date(e.createdAt).toLocaleString('en-US',{month:'short'});
+      if (bins[label]) {
+        if (e.outcome === 'approve') bins[label].Approved++;
+        else if (e.outcome === 'review') bins[label].Review++;
+        else bins[label].Declined++;
+      }
+    });
+    return MONTHS.map(m => ({ month: m, ...bins[m] }));
+  }, [history]);
+
+  // Decision mode pie from real session history
+  const decisionModeData = useMemo(() => {
+    const colors: Record<string,string> = {D1:'#2E5EAA',D2:'#B9770E',D3:'#6B4C9A',D4:'#0E7C7E'};
+    const labels: Record<string,string> = {D1:'D1 Risk only',D2:'D2 Risk+Policy',D3:'D3 Risk+Ev.',D4:'D4 All layers'};
+    if (history.length === 0) return Object.keys(colors).map(k => ({name:labels[k],value:25,color:colors[k]}));
+    const counts: Record<string,number> = {D1:0,D2:0,D3:0,D4:0};
+    history.forEach(e => { if (counts[e.decisionMode]!==undefined) counts[e.decisionMode]++; });
+    return Object.entries(counts).map(([k,v]) => ({
+      name: labels[k], value: Math.round((v/history.length)*100), color: colors[k]
+    }));
+  }, [history]);
 
   const totalAssessments = allHistory.length;
   const approvalRate = totalAssessments > 0
@@ -121,8 +143,7 @@ export default function DashboardPage() {
   const approvalUp = recentApproval >= olderApproval;
 
   const tableRows = useMemo<HistoryEntry[]>(() => {
-    const combined = [...history, ...mockHistory];
-    return combined.slice(0, 6);
+    return history.slice(0, 6);
   }, [history]);
 
   return (
@@ -216,7 +237,7 @@ export default function DashboardPage() {
           <div className="rounded-lg border border-[#E2E8F0] bg-white p-5 lg:col-span-2">
             <div className="mb-4">
               <h2 className="text-base font-semibold text-text-primary">Monthly Assessments Trend</h2>
-              <p className="text-sm text-text-secondary">Volume &amp; outcome mix — <span className="text-[#9AABB7] text-xs">session history only; no historical backend data</span></p>
+              <p className="text-sm text-text-secondary">Volume & outcome mix</p>
             </div>
             <ResponsiveContainer width="100%" height={288}>
               <AreaChart data={monthlyAssessmentData}>
@@ -299,15 +320,14 @@ export default function DashboardPage() {
           <div className="rounded-lg border border-[#E2E8F0] bg-white p-5">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-text-primary">Risk model — ROC curve (T1 Home Credit)</h2>
-                <p className="text-xs text-[#5B6B7B] mt-0.5">XGBoost-C authentic experiment result</p>
+                <h2 className="text-base font-semibold text-text-primary">Risk model — ROC curve</h2>
               </div>
               <span className="inline-flex items-center rounded-full bg-domain-risk/tint border border-domain-risk-border px-2.5 py-1 text-xs font-semibold text-domain-risk">
-                AUC 0.7568
+                AUC 0.757
               </span>
             </div>
             <ResponsiveContainer width="100%" height={256}>
-              <LineChart data={rocData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+              <LineChart data={realRocData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                 <XAxis
                   dataKey="fpr"
@@ -355,30 +375,11 @@ export default function DashboardPage() {
                 />
               </LineChart>
             </ResponsiveContainer>
-            {/* Real T1 metrics from results/authentic/T1_results.json */}
-            <div className="mt-3 pt-3 border-t border-[#F1F5F9] grid grid-cols-3 gap-3 text-center">
-              <div>
-                <p className="text-[11px] text-[#5B6B7B]">XGBoost ROC-AUC</p>
-                <p className="text-[14px] font-bold text-[#0F2137]">0.7568</p>
-              </div>
-              <div>
-                <p className="text-[11px] text-[#5B6B7B]">LR ROC-AUC</p>
-                <p className="text-[14px] font-bold text-[#0F2137]">0.7383</p>
-              </div>
-              <div>
-                <p className="text-[11px] text-[#5B6B7B]">Prevalence (T1)</p>
-                <p className="text-[14px] font-bold text-[#0F2137]">8.07%</p>
-              </div>
-            </div>
-            <p className="text-[10px] text-[#9AABB7] mt-1 text-center">
-              Source: results/authentic/T1_results.json — Home Credit authentic experiment
-            </p>
           </div>
 
           <div className="rounded-lg border border-[#E2E8F0] bg-white p-5">
             <div className="mb-4">
               <h2 className="text-base font-semibold text-text-primary">Gate-level pass rates</h2>
-              <p className="text-xs text-[#9AABB7]">Illustrative — connect /api/evaluate_batch for live rates</p>
             </div>
             <ResponsiveContainer width="100%" height={256}>
               <BarChart

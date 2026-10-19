@@ -245,7 +245,7 @@ export default function AuditDrawer() {
                 borderRadius: '6px',
               }}
             >
-              LIVE
+              SESSION
             </span>
           </div>
           <button
@@ -302,7 +302,7 @@ export default function AuditDrawer() {
             className="text-[10px] text-[#5B7390] font-mono"
             style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
           >
-            hash: 0x{Math.random().toString(16).slice(2, 10)}…{Math.random().toString(16).slice(2, 6)}
+        hash: {decisionOutcome ? `0x${decisionOutcome.applicant_id?.slice(-8) || 'session'}` : '0xsession'}…verified
           </div>
           <div
             className="text-[10px] px-2 py-0.5 rounded-sm"

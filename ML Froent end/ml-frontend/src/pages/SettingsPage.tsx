@@ -54,9 +54,6 @@ export default function SettingsPage() {
   const [formState, setFormState] = useState({
     name: user?.name ?? '',
     email: user?.email ?? '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
     riskCutoff: settings.riskCutoffPct,
     evidenceCutoff: settings.evidenceCutoff,
     decisionMode: settings.defaultDecisionMode as DecisionMode,
@@ -310,50 +307,6 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-[#E2E8F0]">
-                <div className="flex items-center gap-2 mb-5">
-                  <Lock className="h-4 w-4 text-[#5B6B7B]" />
-                  <h3 className="text-sm font-semibold text-text-primary">Change password</h3>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                      Current password
-                    </label>
-                    <input
-                      type="password"
-                      value={formState.currentPassword}
-                      onChange={(e) => updateField('currentPassword', e.target.value)}
-                      className="block w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-sm text-text-primary placeholder:text-[#829AB1] focus:outline-none focus:ring-2 focus:ring-action-primary focus:border-transparent bg-white"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                      New password
-                    </label>
-                    <input
-                      type="password"
-                      value={formState.newPassword}
-                      onChange={(e) => updateField('newPassword', e.target.value)}
-                      className="block w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-sm text-text-primary placeholder:text-[#829AB1] focus:outline-none focus:ring-2 focus:ring-action-primary focus:border-transparent bg-white"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                      Confirm new password
-                    </label>
-                    <input
-                      type="password"
-                      value={formState.confirmPassword}
-                      onChange={(e) => updateField('confirmPassword', e.target.value)}
-                      className="block w-full px-3 py-2.5 border border-[#E2E8F0] rounded-lg text-sm text-text-primary placeholder:text-[#829AB1] focus:outline-none focus:ring-2 focus:ring-action-primary focus:border-transparent bg-white"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 

@@ -371,13 +371,6 @@ function DecisionResultContent() {
               View audit trace
             </button>
             <button
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-[#0F2137] bg-white border border-[#E2E8F0] rounded-sm hover:bg-[#F6F8FA] transition-colors"
-              style={{ borderRadius: '8px' }}
-            >
-              <Download className="h-4 w-4" />
-              Export PDF
-            </button>
-            <button
               onClick={() => {
                 clearDecision();
                 navigate('/assessment');
@@ -966,13 +959,6 @@ function DecisionResultContent() {
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  <button
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[13px] font-medium text-[#0F2137] bg-white border border-[#E2E8F0] rounded-sm hover:bg-[#F6F8FA] transition-colors"
-                    style={{ borderRadius: '8px' }}
-                  >
-                    <Download className="h-4 w-4" />
-                    Save to history
-                  </button>
                   <Link
                     to="/assessment"
                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[13px] font-semibold text-white rounded-sm transition-colors hover:opacity-90"

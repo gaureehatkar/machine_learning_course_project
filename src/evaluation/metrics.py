@@ -86,14 +86,21 @@ def ece(
     return float(ece_val)
 
 
-def calibration_slope_intercept(
+def calibration_slope_ols_deprecated(
     y_true: np.ndarray,
     y_score: np.ndarray,
     clip_eps: float = 1e-6,
 ) -> tuple[float, float]:
     """
-    Calibration slope and intercept: regress y on logit(p_cal).
-    Ideal: slope = 1, intercept = 0.
+    DEPRECATED — OLS linear-probability calibration slope.
+
+    Regresses y (binary) on logit(p_cal) using scipy.stats.linregress.
+    The slope approximates E[p(1-p)] ≈ prevalence*(1-prevalence), not 1.
+    For well-calibrated models this returns ≈ 0.075 on 8% prevalence data,
+    which looks like a large miscalibration but is an artefact of OLS on a
+    binary outcome. Kept for backward compatibility; do NOT use in new work.
+
+    See calibration_slope_intercept() for the correct logistic version.
     """
     from scipy.stats import linregress
     p = np.clip(np.asarray(y_score, dtype=np.float64), clip_eps, 1 - clip_eps)
@@ -101,6 +108,37 @@ def calibration_slope_intercept(
     y = np.asarray(y_true, dtype=np.float64)
     slope, intercept, _, _, _ = linregress(logits, y)
     return float(slope), float(intercept)
+
+
+def calibration_slope_intercept(
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    clip_eps: float = 1e-6,
+) -> tuple[float, float]:
+    """
+    Logistic calibration slope and intercept.
+
+    Fits  logit(p_true) = slope * logit(p_cal) + intercept  via
+    LogisticRegression(C=1e6) (effectively unregularised).
+
+    Ideal calibration: slope = 1, intercept = 0.
+    slope < 1 → overconfident model (predicted probabilities too extreme).
+    slope > 1 → underconfident model (predicted probabilities too flat).
+
+    This is the standard approach in clinical/credit calibration literature
+    (Van Calster et al. 2019; Riley et al. 2021).  Unlike the OLS version
+    the value does not depend on prevalence and is 1 for a perfectly
+    calibrated model regardless of the base rate.
+    """
+    from sklearn.linear_model import LogisticRegression
+    p = np.clip(np.asarray(y_score, dtype=np.float64), clip_eps, 1 - clip_eps)
+    logits = np.log(p / (1 - p)).reshape(-1, 1)
+    y = np.asarray(y_true, dtype=np.float64)
+    lr = LogisticRegression(C=1e6, solver="lbfgs", max_iter=1000)
+    lr.fit(logits, y)
+    slope = float(lr.coef_[0][0])
+    intercept = float(lr.intercept_[0])
+    return slope, intercept
 
 
 # ── Decision metrics ──────────────────────────────────────────────────────────

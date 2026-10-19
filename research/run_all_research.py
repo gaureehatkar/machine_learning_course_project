@@ -242,16 +242,8 @@ def run_t6(cfg, dgp_id, seed):
 def seed_ci(df, group_cols, val_cols):
     """Compute mean +/- 95% CI across seeds."""
     rows = []
-    for gv, gdf in df.groupby(group_cols):
-        row = dict(zip(group_cols, gv if isinstance(gv, tuple) else (gv,)))
-        for c in val_cols:
-            if c in gdf.columns:
-                v = gdf[c].dropna().values
-                if len(v) > 0:
-                    row[f"{c}_mean"] = round(float(np.mean(v)), 4)
-                    row[f"{c}_std"] = round(float(np.std(v, ddof=1)), 4) if len(v) > 1 else 0
-                    row[f"{c}_ci"] = round(T_CRIT * np.std(v, ddof=1) / np.sqrt(len(v)), 4) if len(v) > 1 else 0
-        rows.append(row)
+    n_seeds = len(gdf)
+    t_crit = float(t_dist.ppf(0.975, n_seeds - 1)) if n_seeds > 1 else 0.0
     return pd.DataFrame(rows)
 
 
