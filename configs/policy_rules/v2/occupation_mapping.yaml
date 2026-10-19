@@ -1,0 +1,63 @@
+# ============================================================================
+# Occupation → Policy Attribute Mapping
+# ============================================================================
+# STATUS: UNVERIFIED
+# Maps the occupation_category strings used in the DGP and API to the
+# policy attribute pmmy_nonfarm_eligible (1 = eligible, 0 = ineligible).
+#
+# Three scenarios for the 'agri' occupation (config flag: agri_scenario):
+#   unknown    (DEFAULT) → UNRESOLVED (routes to human review)
+#   ineligible           → pmmy_nonfarm_eligible = 0
+#   eligible             → pmmy_nonfarm_eligible = 1
+#
+# Allied agriculture (poultry, dairy, fisheries) is reportedly eligible under
+# PMMY but the exact clause has not been confirmed. agri_labour (farm wage
+# labour) is widely considered outside scope, but also unconfirmed.
+# ============================================================================
+
+rule_set_status: UNVERIFIED
+agri_scenario: unknown     # DEFAULT: change to 'ineligible' or 'eligible' for sensitivity
+
+mappings:
+  # Non-farm activities — eligible
+  ride_hailing:
+    pmmy_nonfarm_eligible: 1
+    rationale: "Non-farm income-generating activity (transport service)"
+    confidence: high
+    source: "<TO BE FILLED>"
+
+  delivery:
+    pmmy_nonfarm_eligible: 1
+    rationale: "Non-farm income-generating activity (logistics/delivery service)"
+    confidence: high
+    source: "<TO BE FILLED>"
+
+  freelance_services:
+    pmmy_nonfarm_eligible: 1
+    rationale: "Non-farm income-generating activity (professional services)"
+    confidence: high
+    source: "<TO BE FILLED>"
+
+  retail_micro:
+    pmmy_nonfarm_eligible: 1
+    rationale: "Non-farm income-generating micro-enterprise (retail trade)"
+    confidence: high
+    source: "<TO BE FILLED>"
+
+  # Agricultural occupation — scenario-dependent
+  agri_labour:
+    pmmy_nonfarm_eligible: null    # determined by agri_scenario at runtime
+    rationale: >
+      Farm wage labour. Scenario 'unknown' (default) → UNRESOLVED.
+      Scenario 'ineligible' → 0. Scenario 'eligible' → 1.
+      Allied agriculture (poultry/dairy etc.) is reportedly eligible but
+      agri_labour (pure farm wage) likely is not — UNVERIFIED.
+    confidence: low
+    source: "<TO BE FILLED>"
+
+  # Unknown occupations
+  unknown:
+    pmmy_nonfarm_eligible: null    # always UNRESOLVED
+    rationale: "Occupation not disclosed — cannot determine eligibility"
+    confidence: low
+    source: "N/A"

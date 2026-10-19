@@ -1,0 +1,17 @@
+{
+  "git_commit": "494edef767b01b6c2c7107f9c17793abae5a8830",
+  "timestamp": "2026-10-19T09:11:52.118359+00:00",
+  "command": "python research/phase1_preflight_and_t1.py",
+  "phase": 1,
+  "dataset": "data/authentic/application_train.csv",
+  "split_seeds": [
+    42,
+    43
+  ],
+  "outputs": [
+    "T1_results_v2.json",
+    "predictions_lr.npz",
+    "predictions_xgb.npz"
+  ],
+  "reproducibility_ok": false
+}

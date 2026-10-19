@@ -1,0 +1,87 @@
+# ============================================================================
+# PMMY — Pradhan Mantri Mudra Yojana — Policy Rules v2
+# ============================================================================
+# STATUS: UNVERIFIED
+# DO NOT USE IN PRODUCTION OR IN ANY PUBLIC CLAIM UNTIL VERIFIED
+# AGAINST OFFICIAL GAZETTE / MUDRA / PIB TEXTS.
+#
+# Changes from legacy (configs/policy_rules/pmmy.yaml):
+#  - Removed applicant income cap (₹10L in legacy was a loan ceiling, not income cap)
+#  - Removed age band (no supporting official clause found)
+#  - Added versioned loan ceiling rule (₹10L → ₹20L from 2024-10-24)
+#  - Added occupation-based non-farm check via occupation_category mapping
+#  - Loan ceiling rule is for the versioning unit test only (DGP has no loan amount)
+# ============================================================================
+
+rule_set_status: UNVERIFIED
+
+rules:
+
+  # ── Non-farm activity ──────────────────────────────────────────────────────
+  # PMMY covers non-farm income-generating activities.
+  # Allied agriculture (poultry, dairy, bee-keeping, horticulture, fisheries)
+  # is reportedly included but exact clause text NOT confirmed.
+  # The occupation_category mapping in occupation_mapping.yaml implements
+  # the three agri_scenario options.
+
+  - rule_id: "PMMY-V2-NONFARM-001"
+    policy_id: "pmmy_v2"
+    policy_version: "2.0"
+    effective_from: "2015-04-08"   # MUDRA scheme launch date (approximate)
+    effective_to: null
+    priority: 100
+    group: "activity_type"
+    condition:
+      attribute: "pmmy_nonfarm_eligible"
+      operator: "=="
+      value: 1
+    on_missing: "UNKNOWN"
+    source:
+      document: "PMMY scheme guidelines"
+      clause: "Eligible activities — non-farm income generating"
+      page_or_url: "<TO BE FILLED FROM OFFICIAL MUDRA / PIB / GAZETTE TEXT>"
+      retrieved_on: "2026-10-05"
+      verified_by: "<TO BE FILLED>"
+
+  # ── Loan ceiling — version A: before 2024-10-24 ───────────────────────────
+  # Used only in unit tests (DGP has no requested loan amount column).
+  # If a loan_amount_requested column is available, this evaluates the ceiling.
+
+  - rule_id: "PMMY-V2-CEILING-001A"
+    policy_id: "pmmy_v2"
+    policy_version: "2.0"
+    effective_from: "2015-04-08"
+    effective_to: "2024-10-23"     # Raised by Union Budget 2024-25 (reported)
+    priority: 100
+    group: "loan_ceiling"
+    condition:
+      attribute: "loan_amount_requested"
+      operator: "<="
+      value: 1000000    # ₹10,00,000
+    on_missing: "UNKNOWN"
+    source:
+      document: "PMMY original guidelines"
+      clause: "Loan ceiling — Tarun category"
+      page_or_url: "<TO BE FILLED FROM OFFICIAL MUDRA TEXT>"
+      retrieved_on: "2026-10-05"
+      verified_by: "<TO BE FILLED>"
+
+  # ── Loan ceiling — version B: from 2024-10-24 ─────────────────────────────
+  - rule_id: "PMMY-V2-CEILING-001B"
+    policy_id: "pmmy_v2"
+    policy_version: "2.1"
+    effective_from: "2024-10-24"   # Union Budget 2024-25, Tarun Plus (reported)
+    effective_to: null
+    priority: 100
+    group: "loan_ceiling"
+    condition:
+      attribute: "loan_amount_requested"
+      operator: "<="
+      value: 2000000    # ₹20,00,000 (Tarun Plus)
+    on_missing: "UNKNOWN"
+    source:
+      document: "Union Budget 2024-25 announcement"
+      clause: "PMMY Tarun Plus loan ceiling raised to ₹20 lakh"
+      page_or_url: "<TO BE FILLED FROM OFFICIAL PIB / GAZETTE TEXT>"
+      retrieved_on: "2026-10-05"
+      verified_by: "<TO BE FILLED>"
