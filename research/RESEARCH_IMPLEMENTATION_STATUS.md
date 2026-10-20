@@ -1,3 +1,5 @@
+SUPERSEDED — see research/BENCHMARK_RESULTS.md and *_v2.md; predates the calibration-slope and policy-rule corrections
+
 # Research Implementation Status — SynthGigCredit-IN
 
 **Date:** 2026-10-05  

@@ -48,13 +48,14 @@ def select_version(
             "Check effective_from / effective_to dates in rule files."
         )
 
-    # Select highest priority, then latest effective_from
-    best_priority = max(r.priority for r in candidates)
-    top_priority = [r for r in candidates if r.priority == best_priority]
+    # Group rules by their group name — each group contributes its active rule
+    active: list[PolicyRule] = []
+    groups = sorted(set(r.group for r in candidates))
+    for grp in groups:
+        grp_candidates = [r for r in candidates if r.group == grp]
+        best_priority = max(r.priority for r in grp_candidates)
+        top_priority = [r for r in grp_candidates if r.priority == best_priority]
+        latest_from = max(r.effective_from for r in top_priority)
+        active.extend([r for r in top_priority if r.effective_from == latest_from])
 
-    latest_from = max(r.effective_from for r in top_priority)
-    active = [r for r in top_priority if r.effective_from == latest_from]
-
-    # Group rules by their group name — each group contributes one sub-result
-    # Multiple rules in the same version/group are expected; return all
     return active

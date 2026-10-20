@@ -1,0 +1,16 @@
+{
+  "git_commit": "258aa8f1ea2741cdf259b60326bb7e43449104ca",
+  "timestamp": "2026-10-19T15:05:11Z",
+  "scenarios": [
+    "legacy",
+    "v2_unknown",
+    "v2_ineligible",
+    "v2_eligible"
+  ],
+  "n_seeds": 10,
+  "dgps": [
+    "DGP1",
+    "DGP2"
+  ],
+  "elapsed_seconds": 67.6
+}

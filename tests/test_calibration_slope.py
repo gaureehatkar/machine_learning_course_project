@@ -57,11 +57,40 @@ class TestCalibrationSlopeLogistic:
         slope, intercept = calibration_slope_intercept(y, p)
         assert -0.3 <= intercept <= 0.3, f"Expected intercept ≈ 0, got {intercept:.4f}"
 
-    def test_overconfident_slope_less_than_1(self):
-        """Overconfident model (predictions too extreme) → slope < 1."""
-        y, p_true, p_pred = _simulate_overconfident(n=5000, prevalence=0.15, factor=2.0, seed=0)
-        slope, _ = calibration_slope_intercept(y, p_pred)
-        assert slope < 0.9, f"Expected slope < 0.9 for overconfident model, got {slope:.4f}"
+    def test_overconfident_slope_approx_half(self):
+        """(ii) overconfident data p = sigmoid(2*logit(p0)) -> slope approx 0.5."""
+        y, p_true, p_pred = _simulate_overconfident(n=50000, prevalence=0.15, factor=2.0, seed=42)
+        slope, intercept = calibration_slope_intercept(y, p_pred)
+        assert 0.45 <= slope <= 0.55, f"Expected slope ≈ 0.5 for factor=2 overconfident, got {slope:.4f}"
+
+    def test_underconfident_slope_greater_than_1(self):
+        """(iii) underconfident data p = sigmoid(0.5*logit(p0)) -> slope > 1 (approx 2.0)."""
+        rng = np.random.default_rng(123)
+        eta = rng.normal(0, 1, 50000)
+        intercept = logit(0.15)
+        p_true = expit(intercept + eta)
+        y = rng.binomial(1, p_true).astype(float)
+        p_under = expit(0.5 * (intercept + eta))
+        slope, _ = calibration_slope_intercept(y, p_under)
+        assert slope > 1.0, f"Expected slope > 1 for underconfident model, got {slope:.4f}"
+        assert 1.8 <= slope <= 2.2, f"Expected slope ≈ 2.0 for factor=0.5 underconfident, got {slope:.4f}"
+
+    def test_large_sample_calibrated_slope_in_bounds(self):
+        """(i) simulated perfectly calibrated data (n >= 200k) -> logistic slope in [0.95, 1.05], intercept approx 0."""
+        y, p = _simulate_calibrated(n=200000, prevalence=0.10, seed=999)
+        slope, intercept = calibration_slope_intercept(y, p)
+        assert 0.95 <= slope <= 1.05, f"Expected slope in [0.95, 1.05], got {slope:.4f}"
+        assert -0.05 <= intercept <= 0.05, f"Expected intercept ≈ 0, got {intercept:.4f}"
+
+    def test_ols_slope_approximates_mean_p_1_minus_p(self):
+        """(iv) on calibrated data, the OLS slope approx mean(p(1-p)) (documents the artifact)."""
+        y, p = _simulate_calibrated(n=100000, prevalence=0.08, seed=777)
+        slope_ols, _ = calibration_slope_ols_deprecated(y, p)
+        expected_ols = float(np.mean(p * (1.0 - p)))
+        # OLS slope should be within 10% of E[p(1-p)]
+        assert abs(slope_ols - expected_ols) / expected_ols < 0.10, (
+            f"Expected OLS slope ≈ {expected_ols:.4f}, got {slope_ols:.4f}"
+        )
 
     def test_low_prevalence_slope_still_near_1(self):
         """Logistic slope should be ~1 regardless of prevalence (unlike OLS)."""

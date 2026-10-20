@@ -1,1 +1,1 @@
-"""Benchmark models for Phases 2 and 3."""
+# Benchmarks package

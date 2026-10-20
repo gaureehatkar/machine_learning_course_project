@@ -133,7 +133,8 @@ def calibration_slope_intercept(
     from sklearn.linear_model import LogisticRegression
     p = np.clip(np.asarray(y_score, dtype=np.float64), clip_eps, 1 - clip_eps)
     logits = np.log(p / (1 - p)).reshape(-1, 1)
-    y = np.asarray(y_true, dtype=np.float64)
+    # Must be integer labels for sklearn classification; float64 triggers "continuous" error
+    y = np.asarray(y_true, dtype=np.float64).round().astype(int)
     lr = LogisticRegression(C=1e6, solver="lbfgs", max_iter=1000)
     lr.fit(logits, y)
     slope = float(lr.coef_[0][0])

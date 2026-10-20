@@ -98,6 +98,30 @@ def _ttest_from_diffs(a, b, diffs, n) -> PairedResult:
     )
 
 
+def paired_bootstrap_ci(
+    a: np.ndarray | Sequence,
+    b: np.ndarray | Sequence,
+    n_boot: int = 1000,
+    seed: int = 42,
+) -> tuple[float, float, float]:
+    """
+    Optional paired bootstrap CI of mean(b - a) at applicant or seed level.
+    Delegates to src.evaluation.statistical_tests.paired_bootstrap when arrays
+    are applicant-level; otherwise resamples the paired differences.
+    """
+    a = np.asarray(a, dtype=float)
+    b = np.asarray(b, dtype=float)
+    diffs = b - a
+    rng = np.random.default_rng(seed)
+    boots = np.empty(n_boot)
+    n = len(diffs)
+    for i in range(n_boot):
+        idx = rng.integers(0, n, n)
+        boots[i] = float(np.mean(diffs[idx]))
+    lo, hi = np.quantile(boots, [0.025, 0.975])
+    return float(np.mean(diffs)), float(lo), float(hi)
+
+
 def cohen_d_z(diffs: np.ndarray | Sequence) -> float:
     """Cohen's d_z = mean(diff) / std(diff)."""
     d = np.asarray(diffs, dtype=float)

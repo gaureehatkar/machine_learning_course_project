@@ -54,37 +54,35 @@ def sha256(path: Path) -> str:
 
 def run_preflight():
     print("=== PREFLIGHT ===")
-    dirs = [
-        ROOT / "results/authentic",
-        ROOT / "results/gate_g0_report.json",
+    hashes = {}
+    targets = [
+        ROOT / "data/synthetic",
+        ROOT / "results",
         ROOT / "research/tables",
     ]
-    hashes = {}
-    for target in dirs:
-        if target.is_file():
-            hashes[str(target.relative_to(ROOT))] = sha256(target)
-        elif target.is_dir():
-            for f in sorted(target.rglob("*")):
-                if f.is_file():
-                    hashes[str(f.relative_to(ROOT))] = sha256(f)
-
-    # Synthetic parquets — sample only (too many to hash all)
-    synthetic_root = ROOT / "data/synthetic"
-    for f in sorted(synthetic_root.rglob("applicants.parquet"))[:5]:
-        hashes[str(f.relative_to(ROOT))] = sha256(f)
+    for target in targets:
+        if not target.exists():
+            continue
+        files = [target] if target.is_file() else sorted(target.rglob("*"))
+        for path in files:
+            if not path.is_file() or path == PREFLIGHT:
+                continue
+            hashes[str(path.relative_to(ROOT))] = sha256(path)
 
     with open(PREFLIGHT, "w") as fp:
         json.dump(hashes, fp, indent=2)
     print(f"  Hashed {len(hashes)} files -> {PREFLIGHT.name}")
 
-    # Check what is missing
-    missing = []
-    for name in ["results/authentic/predictions_xgb.npz",
-                 "results/authentic/predictions_lr.npz"]:
-        if not (ROOT / name).exists():
-            missing.append(name)
-    if missing:
-        print(f"  MISSING (will be created by T1 v2 re-run): {missing}")
+    for name in [
+        "results/authentic/predictions_xgb.npz",
+        "results/authentic/predictions_lr.npz",
+    ]:
+        print(f"  {'PRESENT' if (ROOT / name).exists() else 'MISSING'}: {name}")
+
+    for name in ("T2_v2", "T6_v2"):
+        pred_dir = ROOT / "results/benchmarks" / name
+        count = len(list(pred_dir.glob("*.npz"))) if pred_dir.exists() else 0
+        print(f"  {name} per-seed prediction files: {count}")
     return hashes
 
 

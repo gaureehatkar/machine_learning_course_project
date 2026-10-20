@@ -1,6 +1,43 @@
 # Benchmark model configurations for Phases 2 and 3
 # All parameters must be set here — no hardcoding in scripts.
 
+random_search:
+  n_trials: 30
+  cv_folds: 5
+  seed: 42
+  scoring: roc_auc
+  feature_sets: [A, C]
+  models:
+    lr:
+      C: [0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+      max_iter: [1000]
+      solver: [lbfgs]
+    woe_lr:
+      C: [0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+    rf:
+      n_estimators: [50, 100]
+      max_depth: [4, 6]
+      min_samples_split: [5, 10]
+      max_features: [sqrt, log2]
+    lgbm:
+      n_estimators: [50, 100, 150]
+      max_depth: [3, 4, 6]
+      learning_rate: [0.03, 0.05, 0.1]
+      num_leaves: [15, 31]
+      subsample: [0.8, 1.0]
+      colsample_bytree: [0.8, 1.0]
+    catboost:
+      iterations: [50, 100, 150]
+      depth: [3, 4, 6]
+      learning_rate: [0.03, 0.05, 0.1]
+      l2_leaf_reg: [1.0, 3.0, 5.0]
+    xgb:
+      n_estimators: [50, 100, 150]
+      max_depth: [3, 4, 6]
+      learning_rate: [0.03, 0.05, 0.1]
+      subsample: [0.8, 1.0]
+      colsample_bytree: [0.8, 1.0]
+
 lightgbm:
   n_estimators: 300
   learning_rate: 0.05

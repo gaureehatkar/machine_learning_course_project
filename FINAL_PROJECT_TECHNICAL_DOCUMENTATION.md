@@ -1,3 +1,5 @@
+SUPERSEDED — see research/BENCHMARK_RESULTS.md and *_v2.md; predates the calibration-slope and policy-rule corrections
+
 # FINAL PROJECT TECHNICAL DOCUMENTATION
 ## Policy-Constrained Credit Decisioning with Evidence-Quality Gating for Thin-File Gig/Platform Workers
 **Version 1.2 — Repository-Based Reconstruction (2026-09-22)**

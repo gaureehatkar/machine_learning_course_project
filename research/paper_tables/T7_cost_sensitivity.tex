@@ -1,0 +1,92 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Cost per applicant on C\_FN/C\_FP × C\_R grid.}
+  \label{tab:T7_cost_sensitivity}
+  \small
+  \begin{tabular}{lrrrrrrrrrrrr}
+    \toprule
+    dataset & dgp & rule\_scenario & method & budget & c\_fn\_over\_c\_fp & c\_review & n & cost\_per\_applicant\_mean & cost\_per\_applicant\_std & cost\_per\_applicant\_ci95 & cost\_per\_applicant\_ci\_lo & cost\_per\_applicant\_ci\_hi \\
+    \midrule
+    synthetic & DGP1 & legacy & V0\_random & 0.2 & 1 & 0.05 & 10 & 0.2602 & 0.007265 & 0.005197 & 0.255 & 0.2654 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.2 & 1 & 0.1 & 10 & 0.2667 & 0.007206 & 0.005155 & 0.2616 & 0.2719 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.2 & 1 & 0.2 & 10 & 0.2797 & 0.007087 & 0.00507 & 0.2746 & 0.2848 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.2 & 3 & 0.05 & 10 & 0.7479 & 0.02093 & 0.01497 & 0.733 & 0.7629 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.2 & 3 & 0.1 & 10 & 0.7544 & 0.02087 & 0.01493 & 0.7395 & 0.7694 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.2 & 3 & 0.2 & 10 & 0.7674 & 0.02075 & 0.01484 & 0.7526 & 0.7823 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.2 & 5 & 0.05 & 10 & 1.236 & 0.03471 & 0.02483 & 1.211 & 1.26 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.2 & 5 & 0.1 & 10 & 1.242 & 0.03465 & 0.02479 & 1.217 & 1.267 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.2 & 5 & 0.2 & 10 & 1.255 & 0.03453 & 0.0247 & 1.23 & 1.28 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.3 & 1 & 0.05 & 10 & 0.2623 & 0.007225 & 0.005168 & 0.2571 & 0.2674 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.3 & 1 & 0.1 & 10 & 0.272 & 0.007135 & 0.005104 & 0.2669 & 0.2771 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.3 & 1 & 0.2 & 10 & 0.2915 & 0.006957 & 0.004977 & 0.2865 & 0.2965 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.3 & 3 & 0.05 & 10 & 0.75 & 0.02089 & 0.01494 & 0.735 & 0.7649 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.3 & 3 & 0.1 & 10 & 0.7597 & 0.02079 & 0.01487 & 0.7449 & 0.7746 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.3 & 3 & 0.2 & 10 & 0.7792 & 0.02061 & 0.01474 & 0.7645 & 0.794 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.3 & 5 & 0.05 & 10 & 1.238 & 0.03466 & 0.0248 & 1.213 & 1.262 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.3 & 5 & 0.1 & 10 & 1.247 & 0.03457 & 0.02473 & 1.223 & 1.272 \\
+    synthetic & DGP1 & legacy & V0\_random & 0.3 & 5 & 0.2 & 10 & 1.267 & 0.03439 & 0.0246 & 1.242 & 1.292 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.2 & 1 & 0.05 & 10 & 0.2569 & 0.007278 & 0.005207 & 0.2516 & 0.2621 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.2 & 1 & 0.1 & 10 & 0.2633 & 0.007218 & 0.005164 & 0.2582 & 0.2685 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.2 & 1 & 0.2 & 10 & 0.2763 & 0.007098 & 0.005078 & 0.2713 & 0.2814 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.2 & 3 & 0.05 & 10 & 0.7446 & 0.02098 & 0.01501 & 0.7296 & 0.7596 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.2 & 3 & 0.1 & 10 & 0.7511 & 0.02092 & 0.01496 & 0.7361 & 0.766 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.2 & 3 & 0.2 & 10 & 0.7641 & 0.0208 & 0.01488 & 0.7492 & 0.7789 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.2 & 5 & 0.05 & 10 & 1.232 & 0.03477 & 0.02487 & 1.207 & 1.257 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.2 & 5 & 0.1 & 10 & 1.239 & 0.0347 & 0.02483 & 1.214 & 1.264 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.2 & 5 & 0.2 & 10 & 1.252 & 0.03458 & 0.02474 & 1.227 & 1.277 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.3 & 1 & 0.05 & 10 & 0.257 & 0.006902 & 0.004938 & 0.2521 & 0.262 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.3 & 1 & 0.1 & 10 & 0.2668 & 0.006811 & 0.004872 & 0.2619 & 0.2716 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.3 & 1 & 0.2 & 10 & 0.2863 & 0.006629 & 0.004742 & 0.2815 & 0.291 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.3 & 3 & 0.05 & 10 & 0.7447 & 0.02068 & 0.0148 & 0.7299 & 0.7595 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.3 & 3 & 0.1 & 10 & 0.7545 & 0.02059 & 0.01473 & 0.7398 & 0.7692 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.3 & 3 & 0.2 & 10 & 0.774 & 0.02041 & 0.0146 & 0.7594 & 0.7886 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.3 & 5 & 0.05 & 10 & 1.232 & 0.03449 & 0.02467 & 1.208 & 1.257 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.3 & 5 & 0.1 & 10 & 1.242 & 0.0344 & 0.02461 & 1.218 & 1.267 \\
+    synthetic & DGP1 & legacy & V1\_R1\_high\_pd & 0.3 & 5 & 0.2 & 10 & 1.262 & 0.03421 & 0.02448 & 1.237 & 1.286 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.2 & 1 & 0.05 & 10 & 0.26 & 0.007198 & 0.005149 & 0.2548 & 0.2651 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.2 & 1 & 0.1 & 10 & 0.2665 & 0.007138 & 0.005106 & 0.2614 & 0.2716 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.2 & 1 & 0.2 & 10 & 0.2795 & 0.007018 & 0.005021 & 0.2744 & 0.2845 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.2 & 3 & 0.05 & 10 & 0.7477 & 0.02089 & 0.01495 & 0.7327 & 0.7626 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.2 & 3 & 0.1 & 10 & 0.7542 & 0.02083 & 0.0149 & 0.7393 & 0.7691 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.2 & 3 & 0.2 & 10 & 0.7672 & 0.02071 & 0.01482 & 0.7524 & 0.782 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.2 & 5 & 0.05 & 10 & 1.235 & 0.03468 & 0.02481 & 1.211 & 1.26 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.2 & 5 & 0.1 & 10 & 1.242 & 0.03462 & 0.02476 & 1.217 & 1.267 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.2 & 5 & 0.2 & 10 & 1.255 & 0.03449 & 0.02468 & 1.23 & 1.28 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.3 & 1 & 0.05 & 10 & 0.2619 & 0.006988 & 0.004999 & 0.2569 & 0.2669 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.3 & 1 & 0.1 & 10 & 0.2716 & 0.006896 & 0.004933 & 0.2667 & 0.2766 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.3 & 1 & 0.2 & 10 & 0.2911 & 0.006712 & 0.004802 & 0.2863 & 0.2959 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.3 & 3 & 0.05 & 10 & 0.7496 & 0.02075 & 0.01484 & 0.7348 & 0.7644 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.3 & 3 & 0.1 & 10 & 0.7593 & 0.02065 & 0.01477 & 0.7446 & 0.7741 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.3 & 3 & 0.2 & 10 & 0.7788 & 0.02047 & 0.01464 & 0.7642 & 0.7935 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.3 & 5 & 0.05 & 10 & 1.237 & 0.03454 & 0.02471 & 1.213 & 1.262 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.3 & 5 & 0.1 & 10 & 1.247 & 0.03445 & 0.02465 & 1.222 & 1.272 \\
+    synthetic & DGP1 & legacy & V1\_R2\_low\_evidence & 0.3 & 5 & 0.2 & 10 & 1.267 & 0.03427 & 0.02451 & 1.242 & 1.291 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.2 & 1 & 0.05 & 10 & 0.2577 & 0.007086 & 0.005069 & 0.2527 & 0.2628 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.2 & 1 & 0.1 & 10 & 0.2642 & 0.007025 & 0.005025 & 0.2592 & 0.2693 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.2 & 1 & 0.2 & 10 & 0.2772 & 0.006903 & 0.004938 & 0.2723 & 0.2822 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.2 & 3 & 0.05 & 10 & 0.7455 & 0.02084 & 0.01491 & 0.7305 & 0.7604 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.2 & 3 & 0.1 & 10 & 0.752 & 0.02078 & 0.01486 & 0.7371 & 0.7668 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.2 & 3 & 0.2 & 10 & 0.7649 & 0.02066 & 0.01478 & 0.7502 & 0.7797 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.2 & 5 & 0.05 & 10 & 1.233 & 0.03464 & 0.02478 & 1.208 & 1.258 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.2 & 5 & 0.1 & 10 & 1.24 & 0.03458 & 0.02474 & 1.215 & 1.264 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.2 & 5 & 0.2 & 10 & 1.253 & 0.03445 & 0.02465 & 1.228 & 1.277 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.3 & 1 & 0.05 & 10 & 0.2591 & 0.006943 & 0.004967 & 0.2541 & 0.2641 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.3 & 1 & 0.1 & 10 & 0.2688 & 0.006851 & 0.004901 & 0.2639 & 0.2737 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.3 & 1 & 0.2 & 10 & 0.2883 & 0.006668 & 0.00477 & 0.2835 & 0.2931 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.3 & 3 & 0.05 & 10 & 0.7468 & 0.0207 & 0.01481 & 0.732 & 0.7616 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.3 & 3 & 0.1 & 10 & 0.7565 & 0.02061 & 0.01474 & 0.7418 & 0.7713 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.3 & 3 & 0.2 & 10 & 0.776 & 0.02042 & 0.01461 & 0.7614 & 0.7906 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.3 & 5 & 0.05 & 10 & 1.235 & 0.0345 & 0.02468 & 1.21 & 1.259 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.3 & 5 & 0.1 & 10 & 1.244 & 0.03441 & 0.02461 & 1.22 & 1.269 \\
+    synthetic & DGP1 & legacy & V1\_R3\_hybrid & 0.3 & 5 & 0.2 & 10 & 1.264 & 0.03422 & 0.02448 & 1.239 & 1.288 \\
+    synthetic & DGP1 & legacy & V2\_margin & 0.2 & 1 & 0.05 & 10 & 0.2569 & 0.007278 & 0.005207 & 0.2516 & 0.2621 \\
+    synthetic & DGP1 & legacy & V2\_margin & 0.2 & 1 & 0.1 & 10 & 0.2633 & 0.007218 & 0.005164 & 0.2582 & 0.2685 \\
+    synthetic & DGP1 & legacy & V2\_margin & 0.2 & 1 & 0.2 & 10 & 0.2763 & 0.007098 & 0.005078 & 0.2713 & 0.2814 \\
+    synthetic & DGP1 & legacy & V2\_margin & 0.2 & 3 & 0.05 & 10 & 0.7446 & 0.02098 & 0.01501 & 0.7296 & 0.7596 \\
+    synthetic & DGP1 & legacy & V2\_margin & 0.2 & 3 & 0.1 & 10 & 0.7511 & 0.02092 & 0.01496 & 0.7361 & 0.766 \\
+    synthetic & DGP1 & legacy & V2\_margin & 0.2 & 3 & 0.2 & 10 & 0.7641 & 0.0208 & 0.01488 & 0.7492 & 0.7789 \\
+    synthetic & DGP1 & legacy & V2\_margin & 0.2 & 5 & 0.05 & 10 & 1.232 & 0.03477 & 0.02487 & 1.207 & 1.257 \\
+    synthetic & DGP1 & legacy & V2\_margin & 0.2 & 5 & 0.1 & 10 & 1.239 & 0.0347 & 0.02483 & 1.214 & 1.264 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

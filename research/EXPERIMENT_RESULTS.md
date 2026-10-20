@@ -1,5 +1,10 @@
 # Experiment Results — SynthGigCredit-IN
 
+> [!WARNING]
+> **SUPERSEDED DOCUMENT**: This document contains legacy results (2026-10-05) using uncorrected calibration slopes and pre-benchmark gating rules. It has been formally superseded by:
+> - [`EXPERIMENT_RESULTS_v2.md`](file:///c:/Users/DELL/Desktop/ml-project%20-%20Copy/EXPERIMENT_RESULTS_v2.md) (comprehensive submission-ready results)
+> - [`research/BENCHMARK_RESULTS.md`](file:///c:/Users/DELL/Desktop/ml-project%20-%20Copy/research/BENCHMARK_RESULTS.md) (reproduced benchmarks across 10 seeds, dynamic Student's t CIs, and multi-algorithm evaluation)
+
 **Date:** 2026-10-05  
 **All results are from actual experiments.** No values are fabricated.  
 **Every number is mean ± 95% CI across 10 seeds** (t-distribution, df=9, t_crit=2.262).  

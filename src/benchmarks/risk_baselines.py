@@ -1,179 +1,273 @@
 """
-Risk-layer benchmark models (Phase 2).
+Risk Model Baselines for SynthGigCredit Benchmarking.
+Implements:
+  1. WoE-LR (OptBinning BinningProcess + LogisticRegression)
+  2. LightGBM (LGBMClassifier)
+  3. CatBoost (CatBoostClassifier)
+  4. Random Forest (SimpleImputer + RandomForestClassifier)
+  5. XGBoost (XGBClassifier)
 
-Provides:
-  WoELR  — optbinning BinningProcess + LogisticRegression
-  LGBMModel — LightGBM
-  CatBoostModel — CatBoost
-
-All models expose:
-  fit(X_train, y_train)
-  predict_raw(X) -> np.ndarray  (uncalibrated probabilities)
-
-After fit, apply src.calibration.platt.fit_platt on validation set,
-then evaluate with src.evaluation.metrics.compute_all_metrics on test set.
-
-Follows identical train-only fitting protocol as src.models.train_models.
+Provides model factory, hyperparameter search spaces, and prediction wrappers.
 """
 from __future__ import annotations
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
+from typing import Any
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass, field
-from typing import Any
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from optbinning import BinningProcess
+from lightgbm import LGBMClassifier
+from xgboost import XGBClassifier
+from catboost import CatBoostClassifier
 
 
-# ── WoE + Logistic Regression ─────────────────────────────────────────────────
+class WoELogisticRegression(BaseEstimator, ClassifierMixin):
+    """OptBinning BinningProcess + LogisticRegression wrapper."""
+    def __init__(self, C: float = 1.0, max_iter: int = 1000, random_state: int = 42):
+        self.C = C
+        self.max_iter = max_iter
+        self.random_state = random_state
+        self.binning_process = None
+        self.clf = None
+        self.feature_names_ = None
 
-@dataclass
-class WoELR:
-    """
-    Weight-of-Evidence binning (optbinning) followed by Logistic Regression.
-    Fit on training data only; transform applied to val and test.
-    """
-    max_n_bins: int = 10
-    min_bin_size: float = 0.05
-    C: float = 1.0
-    solver: str = "lbfgs"
-    max_iter: int = 1000
-    random_state: int = 42
+    def fit(self, X: np.ndarray | pd.DataFrame, y: np.ndarray) -> "WoELogisticRegression":
+        if isinstance(X, pd.DataFrame):
+            self.feature_names_ = list(X.columns)
+            X_df = X
+        else:
+            self.feature_names_ = [f"f_{i}" for i in range(X.shape[1])]
+            X_df = pd.DataFrame(X, columns=self.feature_names_)
 
-    _binning: Any = field(default=None, init=False, repr=False)
-    _lr: Any = field(default=None, init=False, repr=False)
-    feature_names_: list = field(default_factory=list, init=False, repr=False)
-
-    def fit(self, X: np.ndarray, y: np.ndarray,
-            feature_names: list[str] | None = None) -> "WoELR":
-        from optbinning import BinningProcess
-        from sklearn.linear_model import LogisticRegression
-
-        if feature_names is None:
-            feature_names = [f"f{i}" for i in range(X.shape[1])]
-        self.feature_names_ = feature_names
-
-        self._binning = BinningProcess(
-            variable_names=feature_names,
-            max_n_bins=self.max_n_bins,
-            min_bin_size=self.min_bin_size,
+        self.binning_process = BinningProcess(
+            variable_names=self.feature_names_,
+            max_n_bins=5,
+            min_prebin_size=0.05,
         )
-        X_woe = self._binning.fit_transform(X, y)
-
-        self._lr = LogisticRegression(
-            C=self.C, solver=self.solver,
-            max_iter=self.max_iter, random_state=self.random_state
+        X_woe = self.binning_process.fit_transform(X_df, y)
+        self.clf = LogisticRegression(
+            C=self.C,
+            max_iter=self.max_iter,
+            random_state=self.random_state,
+            solver="lbfgs",
         )
-        self._lr.fit(X_woe, y)
+        self.clf.fit(X_woe, y)
         return self
 
-    def predict_raw(self, X: np.ndarray) -> np.ndarray:
-        X_woe = self._binning.transform(X)
-        return self._lr.predict_proba(X_woe)[:, 1]
+    def predict_proba(self, X: np.ndarray | pd.DataFrame) -> np.ndarray:
+        if isinstance(X, pd.DataFrame):
+            X_df = X[self.feature_names_]
+        else:
+            X_df = pd.DataFrame(X, columns=self.feature_names_)
+        X_woe = self.binning_process.transform(X_df)
+        return self.clf.predict_proba(X_woe)
+
+    def predict(self, X: np.ndarray | pd.DataFrame) -> np.ndarray:
+        return (self.predict_proba(X)[:, 1] >= 0.5).astype(int)
 
 
-# ── LightGBM ──────────────────────────────────────────────────────────────────
+class RandomForestBaseline(BaseEstimator, ClassifierMixin):
+    """Median Imputer + Random Forest Classifier."""
+    def __init__(
+        self,
+        n_estimators: int = 100,
+        max_depth: int | None = 6,
+        min_samples_split: int = 5,
+        max_features: Any = "sqrt",
+        random_state: int = 42,
+    ):
+        self.n_estimators = n_estimators
+        self.max_depth = max_depth
+        self.min_samples_split = min_samples_split
+        self.max_features = max_features
+        self.random_state = random_state
+        self.pipeline = None
 
-@dataclass
-class LGBMModel:
-    n_estimators: int = 300
-    learning_rate: float = 0.05
-    max_depth: int = 6
-    num_leaves: int = 63
-    min_child_samples: int = 20
-    subsample: float = 0.8
-    colsample_bytree: float = 0.8
-    random_state: int = 42
-    n_jobs: int = -1
-    verbose: int = -1
-
-    _model: Any = field(default=None, init=False, repr=False)
-
-    def fit(self, X: np.ndarray, y: np.ndarray, **kwargs) -> "LGBMModel":
-        from lightgbm import LGBMClassifier
-        self._model = LGBMClassifier(
+    def fit(self, X: np.ndarray | pd.DataFrame, y: np.ndarray) -> "RandomForestBaseline":
+        X_arr = X.values if isinstance(X, pd.DataFrame) else np.asarray(X)
+        rf = RandomForestClassifier(
             n_estimators=self.n_estimators,
-            learning_rate=self.learning_rate,
             max_depth=self.max_depth,
-            num_leaves=self.num_leaves,
-            min_child_samples=self.min_child_samples,
-            subsample=self.subsample,
-            colsample_bytree=self.colsample_bytree,
+            min_samples_split=self.min_samples_split,
+            max_features=self.max_features,
             random_state=self.random_state,
-            n_jobs=self.n_jobs,
-            verbose=self.verbose,
+            n_jobs=1,
         )
-        self._model.fit(X, y)
+        self.pipeline = Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
+            ("rf", rf),
+        ])
+        self.pipeline.fit(X_arr, y)
         return self
 
-    def predict_raw(self, X: np.ndarray) -> np.ndarray:
-        return self._model.predict_proba(X)[:, 1]
+    def predict_proba(self, X: np.ndarray | pd.DataFrame) -> np.ndarray:
+        X_arr = X.values if isinstance(X, pd.DataFrame) else np.asarray(X)
+        return self.pipeline.predict_proba(X_arr)
+
+    def predict(self, X: np.ndarray | pd.DataFrame) -> np.ndarray:
+        X_arr = X.values if isinstance(X, pd.DataFrame) else np.asarray(X)
+        return self.pipeline.predict(X_arr)
 
 
-# ── CatBoost ──────────────────────────────────────────────────────────────────
+# ── Model Factory ─────────────────────────────────────────────────────────────
 
-@dataclass
-class CatBoostModel:
-    iterations: int = 300
-    learning_rate: float = 0.05
-    depth: int = 6
-    random_state: int = 42
-    verbose: int = 0
+def get_baseline_model(family: str, params: dict | None = None, seed: int = 42):
+    p = params.copy() if params else {}
+    family = family.lower()
 
-    _model: Any = field(default=None, init=False, repr=False)
+    if family in ("lr", "logreg", "logistic_regression"):
+        return Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
+            ("lr", LogisticRegression(
+                C=p.get("C", 1.0),
+                max_iter=p.get("max_iter", 1000),
+                solver=p.get("solver", "lbfgs"),
+                random_state=seed,
+            )),
+        ])
 
-    def fit(self, X: np.ndarray, y: np.ndarray, **kwargs) -> "CatBoostModel":
-        from catboost import CatBoostClassifier
-        self._model = CatBoostClassifier(
-            iterations=self.iterations,
-            learning_rate=self.learning_rate,
-            depth=self.depth,
-            random_state=self.random_state,
-            verbose=self.verbose,
-            allow_writing_files=False,
+    if family in ("woe_lr", "woe-lr", "scorecard"):
+        c_val = p.get("C", 1.0)
+        return WoELogisticRegression(C=c_val, random_state=seed)
+
+    elif family in ("rf", "random_forest"):
+        return RandomForestBaseline(
+            n_estimators=p.get("n_estimators", 100),
+            max_depth=p.get("max_depth", 6),
+            min_samples_split=p.get("min_samples_split", 5),
+            max_features=p.get("max_features", "sqrt"),
+            random_state=seed,
         )
-        self._model.fit(X, y)
-        return self
 
-    def predict_raw(self, X: np.ndarray) -> np.ndarray:
-        return self._model.predict_proba(X)[:, 1]
-
-
-# ── Factory ───────────────────────────────────────────────────────────────────
-
-def make_baseline(name: str, cfg: dict):
-    """
-    Create a baseline model from benchmarks.yaml config.
-
-    name: "woe_logreg" | "lgbm" | "catboost"
-    """
-    if name == "woe_logreg":
-        c = cfg["woe_logreg"]
-        return WoELR(
-            max_n_bins=c["max_n_bins"],
-            min_bin_size=c["min_bin_size"],
-            C=c["C"], solver=c["solver"],
-            max_iter=c["max_iter"], random_state=c["random_state"],
+    elif family in ("lgbm", "lightgbm"):
+        return LGBMClassifier(
+            n_estimators=p.get("n_estimators", 100),
+            max_depth=p.get("max_depth", 4),
+            learning_rate=p.get("learning_rate", 0.1),
+            num_leaves=p.get("num_leaves", 31),
+            subsample=p.get("subsample", 0.8),
+            subsample_freq=1,
+            colsample_bytree=p.get("colsample_bytree", 0.8),
+            random_state=seed,
+            n_jobs=1,
+            verbose=-1,
         )
-    if name == "lgbm":
-        c = cfg["lightgbm"]
-        return LGBMModel(
-            n_estimators=c["n_estimators"],
-            learning_rate=c["learning_rate"],
-            max_depth=c["max_depth"],
-            num_leaves=c["num_leaves"],
-            min_child_samples=c["min_child_samples"],
-            subsample=c["subsample"],
-            colsample_bytree=c["colsample_bytree"],
-            random_state=c["random_state"],
-            n_jobs=c.get("n_jobs", -1),
-            verbose=c.get("verbose", -1),
+
+    elif family in ("catboost", "cat"):
+        return CatBoostClassifier(
+            iterations=p.get("iterations", 100),
+            depth=p.get("depth", 4),
+            learning_rate=p.get("learning_rate", 0.1),
+            l2_leaf_reg=p.get("l2_leaf_reg", 3.0),
+            random_seed=seed,
+            verbose=False,
+            thread_count=1,
         )
-    if name == "catboost":
-        c = cfg["catboost"]
-        return CatBoostModel(
-            iterations=c["iterations"],
-            learning_rate=c["learning_rate"],
-            depth=c["depth"],
-            random_state=c["random_state"],
-            verbose=c.get("verbose", 0),
+
+    elif family in ("xgb", "xgboost"):
+        return XGBClassifier(
+            n_estimators=p.get("n_estimators", 100),
+            max_depth=p.get("max_depth", 4),
+            learning_rate=p.get("learning_rate", 0.1),
+            subsample=p.get("subsample", 0.8),
+            colsample_bytree=p.get("colsample_bytree", 0.8),
+            random_state=seed,
+            n_jobs=1,
+            eval_metric="logloss",
         )
-    raise ValueError(f"Unknown baseline: {name!r}")
+    else:
+        raise ValueError(f"Unknown baseline model family: {family}")
+
+
+# ── Hyperparameter Search Spaces ──────────────────────────────────────────────
+
+SEARCH_SPACES = {
+    "lr": {
+        "C": [0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0],
+    },
+    "woe_lr": {
+        "C": [0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0],
+    },
+    "rf": {
+        "n_estimators": [50, 100],
+        "max_depth": [4, 6],
+        "min_samples_split": [5, 10],
+        "max_features": ["sqrt", "log2"],
+    },
+    "lgbm": {
+        "n_estimators": [50, 100, 150],
+        "max_depth": [3, 4, 6],
+        "learning_rate": [0.03, 0.05, 0.1],
+        "num_leaves": [15, 31],
+        "subsample": [0.8, 1.0],
+        "colsample_bytree": [0.8, 1.0],
+    },
+    "catboost": {
+        "iterations": [50, 100, 150],
+        "depth": [3, 4, 6],
+        "learning_rate": [0.03, 0.05, 0.1],
+        "l2_leaf_reg": [1.0, 3.0, 5.0],
+    },
+    "xgb": {
+        "n_estimators": [50, 100, 150],
+        "max_depth": [3, 4, 6],
+        "learning_rate": [0.03, 0.05, 0.1],
+        "subsample": [0.8, 1.0],
+        "colsample_bytree": [0.8, 1.0],
+    },
+}
+
+
+def sample_hyperparameters(
+    family: str,
+    n_iter: int = 30,
+    seed: int = 42,
+    search_space: dict[str, list] | None = None,
+) -> list[dict]:
+    """Deterministically draw parameter dictionaries from a supplied search space."""
+    rng = np.random.RandomState(seed)
+    space = search_space if search_space is not None else SEARCH_SPACES[family]
+    samples = []
+    keys = sorted(space.keys())
+
+    for _ in range(n_iter):
+        draw = {}
+        for k in keys:
+            vals = space[k]
+            idx = rng.randint(0, len(vals))
+            draw[k] = vals[idx]
+        samples.append(draw)
+    return samples
+
+
+def get_tuned_params(
+    tuned: dict,
+    dataset: str,
+    family: str,
+    feature_set: str = "C",
+) -> dict:
+    """Read both feature-set-specific v2 parameters and earlier flat caches."""
+    if dataset not in tuned:
+        raise KeyError(f"No tuned parameters found for dataset {dataset!r}")
+    dataset_params = tuned[dataset]
+    if feature_set in dataset_params and family in dataset_params[feature_set]:
+        result = dataset_params[feature_set][family].get("best_params")
+        if result is None:
+            raise KeyError(
+                f"Missing best_params for {dataset}/{feature_set}/{family}"
+            )
+        return result
+    if family in dataset_params:
+        result = dataset_params[family].get("best_params")
+        if result is None:
+            raise KeyError(f"Missing best_params for {dataset}/{family}")
+        return result
+    raise KeyError(
+        f"No tuned parameters found for {dataset}/{feature_set}/{family}"
+    )

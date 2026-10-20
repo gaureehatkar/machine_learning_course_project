@@ -113,4 +113,46 @@ tests/                # pytest suite
 ## Claim boundary
 
 All synthetic results are **simulation evidence under stated assumptions** — not real-world lending performance.
-The Home Credit experiment validates the modelling pipeline on authentic credit data.
+The Home Credit experiment checks the modelling pipeline on authentic **consumer-loan** data (not Indian gig lending).
+
+---
+
+## Reproducing benchmark tables and figures
+
+Paper-facing numbers: `research/BENCHMARK_RESULTS.md`. Policy YAML: **UNVERIFIED**.
+
+```bash
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.lock
+make reproduce
+```
+
+`make reproduce` runs the configured Phases 1–10 pipeline, including benchmark reruns, reports, figures, paper tables, claim scan, and the full test suite after each phase. It does **not** overwrite `results/authentic/` or original `research/tables/T*.csv`. Phase 7 has previously taken about 10.8 hours on this host; reruns can take longer.
+Use the pinned environment: the audited host's global installation has NumPy 2.2.6 while the lock pins 1.26.4, and XGBoost import terminated with a native access violation.
+
+| Step | Command | Runtime observed on this Windows host |
+|---|---|---|
+| Phase 5 risk baselines | `python -u research/run_phase5_risk_baselines.py` | ~20 min (prior run 1220 s) |
+| Phase 7 review | `python -u research/run_phase7_review_baselines.py` | ~10.8 h (one seed stalled; typical seed 2–40 s) |
+| Phase 8 stats | `python -u research/run_phase8_statistical_tests.py` | seconds |
+| Figures / tables | `python -u research/make_figures.py` / `make_paper_tables.py` | seconds–minutes |
+| Tests | `pytest` | ~1–2 min |
+
+To regenerate only the reporting layer from already available upstream CSVs:
+
+```bash
+python -u research/run_phase8_statistical_tests.py
+python -u research/make_figures.py
+python -u research/make_paper_tables.py
+python -u research/write_phase9_report.py
+python -u scripts/check_forbidden_claims.py
+pytest -q
+python -u research/write_phase10_report.py
+```
+
+### Data availability
+
+- **Home Credit Default Risk** (`application_train.csv`): from Kaggle; **not redistributed** in this repo. Place under `data/authentic/`.
+- **Dataset 2** (Afsharinia & Gurtoo gig-worker survey): CC BY 4.0, DOI [10.17632/j6hd2dfsh8.1](https://doi.org/10.17632/j6hd2dfsh8.1). Freeze note: `docs/dataset2_freeze.md`.
+- **SynthGigCredit-IN**: generated locally (`data/synthetic/`); do not edit existing parquet files.

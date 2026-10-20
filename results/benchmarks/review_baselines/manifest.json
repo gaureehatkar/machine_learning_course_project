@@ -1,0 +1,40 @@
+{
+  "phase": 7,
+  "timestamp": "2026-10-20T06:14:29.934090+00:00",
+  "git_commit": "258aa8f1ea2741cdf259b60326bb7e43449104ca",
+  "strategies": [
+    "V0_random",
+    "V1_R1_high_pd",
+    "V1_R2_low_evidence",
+    "V1_R3_hybrid",
+    "V2_margin",
+    "V3_split_conformal",
+    "V4_mondrian_conformal",
+    "V5_scross",
+    "V7_oracle"
+  ],
+  "v6_skipped": true,
+  "v6_reason": "No exposure/loan-amount column in synthetic DGP (Phase 3 audit).",
+  "v5_note": "SCROSS-style (simplified); does not reproduce Pugnana et al.",
+  "budgets_primary": [
+    0.2,
+    0.3
+  ],
+  "rule_scenarios": [
+    "legacy",
+    "v2_unknown",
+    "v2_ineligible",
+    "v2_eligible"
+  ],
+  "notes": [
+    "V6 expected-loss skipped: Phase 3 exposure audit found no loan-amount/exposure column.",
+    "V5 labelled SCROSS-style (simplified); does not reproduce Pugnana et al.",
+    "Pool P = {PD < tau AND policy != UNSATISFIED}; K = floor(B*|P|); mandatory UNRESOLVED first."
+  ],
+  "outputs": [
+    "research/tables/benchmarks/review_baselines.csv",
+    "research/tables/benchmarks/review_baselines_per_seed.csv",
+    "research/tables/benchmarks/review_rank_equivalence.csv",
+    "research/tables/benchmarks/cost_sensitivity.csv"
+  ]
+}

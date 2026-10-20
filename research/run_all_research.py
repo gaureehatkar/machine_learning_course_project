@@ -15,6 +15,7 @@ from pathlib import Path
 from datetime import date
 import numpy as np
 import pandas as pd
+from scipy.stats import t as t_dist
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
@@ -41,7 +42,8 @@ TABLES_DIR = ROOT / "research" / "tables"
 for d in [RESULTS_DIR, TABLES_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
-T_CRIT = 2.262  # t(0.975, 9) for 10 seeds
+# t critical is computed from the actual seed count in seed_ci() via
+# float(t_dist.ppf(0.975, n - 1)) if n > 1 else 0.0
 
 
 def run_t2(cfg, dgp_id, seed):
@@ -240,17 +242,19 @@ def run_t6(cfg, dgp_id, seed):
 
 
 def seed_ci(df, group_cols, val_cols):
-    """Compute mean +/- 95% CI across seeds."""
+    """Compute mean +/- 95% CI across seeds using dynamic Student's t distribution."""
     rows = []
     for gv, gdf in df.groupby(group_cols):
         row = dict(zip(group_cols, gv if isinstance(gv, tuple) else (gv,)))
         for c in val_cols:
             if c in gdf.columns:
                 v = gdf[c].dropna().values
-                if len(v) > 0:
+                n = len(v)
+                t_crit = float(t_dist.ppf(0.975, n - 1)) if n > 1 else 0.0
+                if n > 0:
                     row[f"{c}_mean"] = round(float(np.mean(v)), 4)
-                    row[f"{c}_std"] = round(float(np.std(v, ddof=1)), 4) if len(v) > 1 else 0
-                    row[f"{c}_ci"] = round(T_CRIT * np.std(v, ddof=1) / np.sqrt(len(v)), 4) if len(v) > 1 else 0
+                    row[f"{c}_std"] = round(float(np.std(v, ddof=1)), 4) if n > 1 else 0
+                    row[f"{c}_ci"] = round(t_crit * np.std(v, ddof=1) / np.sqrt(n), 4) if n > 1 else 0
         rows.append(row)
     return pd.DataFrame(rows)
 

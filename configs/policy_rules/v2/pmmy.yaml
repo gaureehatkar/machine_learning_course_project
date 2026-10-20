@@ -51,7 +51,7 @@ rules:
     policy_id: "pmmy_v2"
     policy_version: "2.0"
     effective_from: "2015-04-08"
-    effective_to: "2024-10-23"     # Raised by Union Budget 2024-25 (reported)
+    effective_to: "2024-10-24"     # Raised by Union Budget 2024-25 (reported)
     priority: 100
     group: "loan_ceiling"
     condition:

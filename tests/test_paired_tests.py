@@ -6,6 +6,7 @@ from scipy.stats import ttest_rel
 from src.evaluation.paired_tests import (
     paired_ttest, holm_correction, bonferroni_correction,
     cohen_d_z, format_contrast_table, ALPHA_BONFERRONI,
+    paired_bootstrap_ci,
 )
 
 
@@ -108,6 +109,17 @@ class TestBonferroniCorrection:
 
     def test_alpha_constant(self):
         assert ALPHA_BONFERRONI == pytest.approx(0.05 / 3)
+
+
+class TestPairedBootstrap:
+
+    def test_ci_covers_mean(self):
+        rng = np.random.default_rng(0)
+        a = rng.normal(0.5, 0.02, 30)
+        b = a + 0.01
+        mean, lo, hi = paired_bootstrap_ci(a, b, n_boot=200, seed=1)
+        assert lo <= mean <= hi
+        assert mean == pytest.approx(0.01, abs=1e-12)
 
 
 class TestCohenDz:

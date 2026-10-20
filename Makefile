@@ -1,80 +1,67 @@
-.PHONY: setup test generate gate features train calibrate decisions evaluate demo all clean
+.PHONY: all reproduce phase1 phase2 phase3 phase4 phase5 phase6 phase7 phase8 phase9 phase10 test figures tables audit clean lock
 
-PYTHON = python
-CONFIG = configs/experiment.yaml
-DGP ?= 1
-SEED ?= 1
+all: reproduce
 
-setup:
-	pip install -r requirements.txt
-	pip install -e .
+# Regenerate benchmark artifacts without changing the original T1–T9 tables.
+reproduce: phase10
+
+phase1:
+	python -u research/phase1_preflight_and_t1.py
+	python -u research/recompute_t2_t6_v2.py
+	python -u research/save_t2_t6_npz_and_update_calibration.py
+	pytest -q
+
+phase2: phase1
+	python -u research/generate_policy_truth.py
+	python -u research/run_phase2_policy_v2.py
+	pytest -q
+
+phase3: phase2
+	python -u research/run_phase3_diagnostics.py
+	pytest -q
+
+phase4: phase3
+	python -u research/phase4_matched_coverage.py
+	pytest -q
+
+phase5: phase4
+	python -u research/run_phase5_risk_baselines.py
+	pytest -q
+
+phase6: phase5
+	python -u research/run_phase6_architecture_and_policy.py
+	pytest -q
+
+phase7: phase6
+	python -u research/run_phase7_review_baselines.py
+	pytest -q
+
+phase8: phase7
+	python -u research/run_phase8_statistical_tests.py
+	pytest -q
+
+phase9: phase8
+	python -u research/make_figures.py
+	python -u research/make_paper_tables.py
+	python -u research/write_phase9_report.py
+	pytest -q
+
+phase10: phase9
+	python -u scripts/check_forbidden_claims.py
+	pytest -q
+	python -u research/write_phase10_report.py
+
+figures:
+	python -u research/make_figures.py
+
+tables:
+	python -u research/make_paper_tables.py
 
 test:
-	pytest tests/ -v --tb=short
+	pytest -v
 
-# ── Data generation ────────────────────────────────────────────────────────────
-generate:
-	$(PYTHON) -m src.data_generation.generate --config $(CONFIG) --dgp $(DGP) --seed $(SEED)
+audit:
+	python -u scripts/check_forbidden_claims.py
 
-generate-g0:
-	$(PYTHON) -m src.data_generation.generate --config $(CONFIG) --dgp 1 --seed 0
-	$(PYTHON) -m src.data_generation.generate --config $(CONFIG) --dgp 2 --seed 0
-
-generate-all:
-	@for dgp in 1 2; do \
-		for seed in 0 1 2 3 4 5 6 7 8 9 10; do \
-			$(PYTHON) -m src.data_generation.generate --config $(CONFIG) --dgp $$dgp --seed $$seed; \
-		done; \
-	done
-
-# ── Gate G0 ────────────────────────────────────────────────────────────────────
-gate:
-	$(PYTHON) -m src.data_validation.gate_g0 --config $(CONFIG)
-
-# ── Features ───────────────────────────────────────────────────────────────────
-features:
-	$(PYTHON) -m src.feature_engineering.build --config $(CONFIG) --dgp $(DGP) --seed $(SEED) --view full
-	$(PYTHON) -m src.feature_engineering.build --config $(CONFIG) --dgp $(DGP) --seed $(SEED) --view visible
-
-features-all:
-	@for dgp in 1 2; do \
-		for seed in 1 2 3 4 5 6 7 8 9 10; do \
-			$(PYTHON) -m src.feature_engineering.build --config $(CONFIG) --dgp $$dgp --seed $$seed --view full; \
-			$(PYTHON) -m src.feature_engineering.build --config $(CONFIG) --dgp $$dgp --seed $$seed --view visible; \
-		done; \
-	done
-
-# ── Experiments ────────────────────────────────────────────────────────────────
-authentic:
-	$(PYTHON) -m experiments.authentic.run --config configs/models.yaml
-
-ablation:
-	$(PYTHON) -m experiments.ablation.run --config $(CONFIG) --dgp $(DGP) --seed $(SEED)
-
-gating:
-	$(PYTHON) -m experiments.gating.run --config $(CONFIG) --dgp $(DGP) --seed $(SEED)
-
-review:
-	$(PYTHON) -m experiments.review.run --config $(CONFIG) --dgp $(DGP) --seed $(SEED)
-
-history:
-	$(PYTHON) -m experiments.history.run --config $(CONFIG) --dgp $(DGP) --seed $(SEED)
-
-fairness:
-	$(PYTHON) -m experiments.fairness.run --config $(CONFIG) --dgp $(DGP) --seed $(SEED)
-
-# ── Aggregate results ──────────────────────────────────────────────────────────
-evaluate:
-	$(PYTHON) -m src.evaluation.aggregate --config $(CONFIG)
-
-# ── Demo ───────────────────────────────────────────────────────────────────────
-demo:
-	streamlit run app/main.py
-
-# ── Full pipeline ──────────────────────────────────────────────────────────────
-all: generate-all gate features-all ablation gating review history fairness evaluate
-
-clean:
-	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-	find . -name "*.pyc" -delete 2>/dev/null || true
-	rm -rf .pytest_cache
+lock:
+	pip freeze > requirements.lock
