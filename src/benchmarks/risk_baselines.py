@@ -21,7 +21,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from optbinning import BinningProcess
+# optbinning / ropwr is imported lazily inside WoELogisticRegression.fit()
+# because ropwr has a native ABI crash on Python 3.12 + numpy 1.26 on Windows.
+# All other 5 baselines (LR, RF, LGBM, CatBoost, XGB) are unaffected.
+BinningProcess = None  # populated lazily; never import at module level
+OPTBINNING_AVAILABLE: bool | None = None  # None = untested, True/False after first fit
 from lightgbm import LGBMClassifier
 from xgboost import XGBClassifier
 from catboost import CatBoostClassifier
@@ -38,6 +42,19 @@ class WoELogisticRegression(BaseEstimator, ClassifierMixin):
         self.feature_names_ = None
 
     def fit(self, X: np.ndarray | pd.DataFrame, y: np.ndarray) -> "WoELogisticRegression":
+        global BinningProcess, OPTBINNING_AVAILABLE
+        if OPTBINNING_AVAILABLE is None:
+            try:
+                from optbinning import BinningProcess as _BP
+                BinningProcess = _BP
+                OPTBINNING_AVAILABLE = True
+            except Exception:
+                OPTBINNING_AVAILABLE = False
+        if not OPTBINNING_AVAILABLE:
+            raise ImportError(
+                "WoE-LR baseline requires optbinning (ropwr native crash on this "
+                "Python 3.12/numpy 1.26 platform). WoE-LR is skipped."
+            )
         if isinstance(X, pd.DataFrame):
             self.feature_names_ = list(X.columns)
             X_df = X

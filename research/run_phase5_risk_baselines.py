@@ -38,7 +38,13 @@ from __future__ import annotations
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
-import optbinning
+# optbinning import deferred — ropwr native crash on Python 3.12/numpy 1.26 Windows
+# woe_lr is excluded from MODEL_FAMILIES; this import is a no-op here.
+try:
+    import optbinning  # noqa: F401
+    print("[phase5] optbinning imported OK", flush=True)
+except Exception as _e:
+    print(f"[phase5] optbinning unavailable: {_e}", flush=True)
 
 import hashlib
 import json, sys, time
@@ -80,7 +86,9 @@ REPORTS = ROOT / "results/benchmarks/reports"
 TABLES.mkdir(parents=True, exist_ok=True)
 REPORTS.mkdir(parents=True, exist_ok=True)
 
-MODEL_FAMILIES = ["lr", "woe_lr", "rf", "lgbm", "catboost", "xgb"]
+# woe_lr excluded: ropwr native crash on Python 3.12 + numpy 1.26 (Windows).
+# WoE-LR results will be reported as N/A with this note in the Phase 5 report.
+MODEL_FAMILIES = ["lr", "rf", "lgbm", "catboost", "xgb"]
 BENCHMARK_CONFIG = ROOT / "configs/benchmarks.yaml"
 
 
@@ -105,32 +113,9 @@ def tune_family(
     best_params = candidates[0]
 
     if family in ("woe_lr", "woe-lr", "scorecard"):
-        from optbinning import BinningProcess
-        from sklearn.linear_model import LogisticRegression
-        fold_data = []
-        for tr_idx, val_idx in skf.split(X, y):
-            X_tr_f = X.iloc[tr_idx] if isinstance(X, pd.DataFrame) else pd.DataFrame(X[tr_idx])
-            X_va_f = X.iloc[val_idx] if isinstance(X, pd.DataFrame) else pd.DataFrame(X[val_idx])
-            y_tr_f = y[tr_idx]
-            y_va_f = y[val_idx]
-            bp = BinningProcess(variable_names=list(X_tr_f.columns))
-            X_tr_woe = bp.fit_transform(X_tr_f, y_tr_f)
-            X_va_woe = bp.transform(X_va_f)
-            fold_data.append((X_tr_woe, y_tr_f, X_va_woe, y_va_f))
-
-        for params in candidates:
-            c_val = params.get("C", 1.0)
-            cv_scores = []
-            for X_tr_w, y_tr_f, X_va_w, y_va_f in fold_data:
-                lr = LogisticRegression(C=c_val, max_iter=1000, random_state=seed, solver="lbfgs")
-                lr.fit(X_tr_w, y_tr_f)
-                score = roc_auc_score(y_va_f, lr.predict_proba(X_va_w)[:, 1])
-                cv_scores.append(score)
-            mean_score = float(np.mean(cv_scores)) if cv_scores else 0.0
-            if mean_score > best_score:
-                best_score = mean_score
-                best_params = params
-        return {"best_params": best_params, "best_cv_auc": round(best_score, 4)}
+        # woe_lr excluded on this platform (ropwr native crash).
+        return {"best_cv_auc": float("nan"), "best_params": {}, "n_trials": 0,
+                "note": "woe_lr skipped: ropwr native crash on Python 3.12/numpy 1.26"}
 
     for params in candidates:
         cv_scores = []

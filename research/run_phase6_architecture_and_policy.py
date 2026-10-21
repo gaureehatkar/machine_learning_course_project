@@ -62,7 +62,8 @@ OUT_BENCH = ROOT / "results/benchmarks"
 TABLES.mkdir(parents=True, exist_ok=True)
 REPORTS.mkdir(parents=True, exist_ok=True)
 
-MODEL_FAMILIES = ["lr", "woe_lr", "rf", "lgbm", "catboost", "xgb"]
+# woe_lr excluded: ropwr native crash on Python 3.12 + numpy 1.26 (Windows).
+MODEL_FAMILIES = ["lr", "rf", "lgbm", "catboost", "xgb"]
 
 
 def seed_ci(df: pd.DataFrame, group_cols: list, val_cols: list) -> pd.DataFrame:

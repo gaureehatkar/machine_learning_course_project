@@ -1,6 +1,6 @@
 {
-  "git_commit": "494edef767b01b6c2c7107f9c17793abae5a8830",
-  "timestamp": "2026-10-19T09:11:52.118359+00:00",
+  "git_commit": "17d253eab58ba1d144fa04087b23bfbdac6084a1",
+  "timestamp": "2026-10-21T14:41:56.392271+00:00",
   "command": "python research/phase1_preflight_and_t1.py",
   "phase": 1,
   "dataset": "data/authentic/application_train.csv",
@@ -13,5 +13,5 @@
     "predictions_lr.npz",
     "predictions_xgb.npz"
   ],
-  "reproducibility_ok": false
+  "reproducibility_ok": true
 }

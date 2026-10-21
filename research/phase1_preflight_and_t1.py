@@ -282,23 +282,27 @@ def make_calibration_table(results_v2, t1_old):
             "intercept_logistic": results_v2[fam]["calibration_intercept"],
         })
 
-    # T2 old values
-    t2_old = pd.read_csv(ROOT / "research/tables/T2_ablation_agg.csv")
-    for _, row in t2_old.iterrows():
-        rows.append({
-            "experiment": "T2", "dataset": "Synthetic",
-            "dgp": f"DGP{int(row['dgp'])}", "config": row["config"],
-            "n_seeds": 10,
-            "auc_old": row.get("roc_auc_mean"),
-            "auc_new": None,  # placeholder until T2_v2 runs
-            "brier_old": row.get("brier_mean"),
-            "brier_new": None,
-            "ece_old": row.get("ece_mean"),
-            "ece_new": None,
-            "slope_ols": row.get("calibration_slope_mean"),  # old runs used OLS
-            "slope_logistic": None,
-            "intercept_logistic": None,
-        })
+    # T2 old values — only if the old aggregate CSV exists
+    t2_csv = ROOT / "research/tables/T2_ablation_agg.csv"
+    if t2_csv.exists():
+        t2_old = pd.read_csv(t2_csv)
+        for _, row in t2_old.iterrows():
+            rows.append({
+                "experiment": "T2", "dataset": "Synthetic",
+                "dgp": f"DGP{int(row['dgp'])}", "config": row["config"],
+                "n_seeds": 10,
+                "auc_old": row.get("roc_auc_mean"),
+                "auc_new": None,
+                "brier_old": row.get("brier_mean"),
+                "brier_new": None,
+                "ece_old": row.get("ece_mean"),
+                "ece_new": None,
+                "slope_ols": row.get("calibration_slope_mean"),
+                "slope_logistic": None,
+                "intercept_logistic": None,
+            })
+    else:
+        print("  NOTE: research/tables/T2_ablation_agg.csv not found — T2 rows skipped in calibration table (will be populated after T2 rerun)")
 
     df = pd.DataFrame(rows)
     out = OUT_TABLES / "calibration_old_vs_new.csv"
