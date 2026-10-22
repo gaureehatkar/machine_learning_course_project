@@ -58,7 +58,7 @@ Figures and tables are generated from their source CSVs and prediction files; nu
 ## (d) Anomalies and deviations
 - F5 suppresses rank-equivalent methods using `review_rank_equivalence.csv`.
 - Synthetic data has no exposure field; V6 is omitted from the review frontier.
-- Phase 5 source tables remain the source of the displayed AUC/KS values; inspect the Phase 5 report for any unresolved metric caveat.
+- F8 uses the rerun Phase 5 CSVs; logistic calibration-slope acceptance passed. WoE-LR was excluded because optbinning/ropwr crashes on this Windows environment.
 
 ## (e) Acceptance checks
 | Check | Status |

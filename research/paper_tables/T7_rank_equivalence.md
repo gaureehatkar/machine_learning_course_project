@@ -4,77 +4,77 @@ Spearman of priority vs PD; fraction identical to R1 at B=20%.
 
 Source: `research\tables\benchmarks\review_rank_equivalence.csv`
 
-dataset,dgp,rule_scenario,method,n,spearman_rho_mean,spearman_rho_std,spearman_rho_ci95,frac_identical_to_r1_b20,rank_status
-synthetic,DGP1,legacy,V0_random,10,6.9e-05,0.011703,0.008372,0.0,distinct
-synthetic,DGP1,legacy,V1_R1_high_pd,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,legacy,V1_R2_low_evidence,10,-0.037543,0.051463,0.036815,0.0,distinct
-synthetic,DGP1,legacy,V1_R3_hybrid,10,0.456484,0.056281,0.040261,0.0,distinct
-synthetic,DGP1,legacy,V2_margin,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,legacy,V3_split_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,legacy,V4_mondrian_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,legacy,V5_scross,10,-1.0,0.0,0.0,0.0,distinct
-synthetic,DGP1,legacy,V7_oracle,10,0.993363,0.00149,0.001066,0.0,distinct
-synthetic,DGP1,v2_eligible,V0_random,10,0.006522,0.019016,0.013603,0.0,distinct
-synthetic,DGP1,v2_eligible,V1_R1_high_pd,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_eligible,V1_R2_low_evidence,10,-0.036421,0.052732,0.037722,0.0,distinct
-synthetic,DGP1,v2_eligible,V1_R3_hybrid,10,0.456394,0.058086,0.041552,0.0,distinct
-synthetic,DGP1,v2_eligible,V2_margin,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_eligible,V3_split_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_eligible,V4_mondrian_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_eligible,V5_scross,10,-1.0,0.0,0.0,0.0,distinct
-synthetic,DGP1,v2_eligible,V7_oracle,10,0.99353,0.001226,0.000877,0.0,distinct
-synthetic,DGP1,v2_ineligible,V0_random,10,-0.000207,0.019855,0.014203,0.0,distinct
-synthetic,DGP1,v2_ineligible,V1_R1_high_pd,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_ineligible,V1_R2_low_evidence,10,-0.038324,0.053063,0.037959,0.0,distinct
-synthetic,DGP1,v2_ineligible,V1_R3_hybrid,10,0.456861,0.057084,0.040836,0.0,distinct
-synthetic,DGP1,v2_ineligible,V2_margin,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_ineligible,V3_split_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_ineligible,V4_mondrian_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_ineligible,V5_scross,10,-1.0,0.0,0.0,0.0,distinct
-synthetic,DGP1,v2_ineligible,V7_oracle,10,0.9933,0.001551,0.00111,0.0,distinct
-synthetic,DGP1,v2_unknown,V0_random,10,0.006522,0.019016,0.013603,0.0,distinct
-synthetic,DGP1,v2_unknown,V1_R1_high_pd,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_unknown,V1_R2_low_evidence,10,-0.036421,0.052732,0.037722,0.0,distinct
-synthetic,DGP1,v2_unknown,V1_R3_hybrid,10,0.456394,0.058086,0.041552,0.0,distinct
-synthetic,DGP1,v2_unknown,V2_margin,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_unknown,V3_split_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_unknown,V4_mondrian_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP1,v2_unknown,V5_scross,10,-1.0,0.0,0.0,0.0,distinct
-synthetic,DGP1,v2_unknown,V7_oracle,10,0.99353,0.001226,0.000877,0.0,distinct
-synthetic,DGP2,legacy,V0_random,10,-0.005391,0.012371,0.00885,0.0,distinct
-synthetic,DGP2,legacy,V1_R1_high_pd,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,legacy,V1_R2_low_evidence,10,-0.042233,0.030596,0.021887,0.0,distinct
-synthetic,DGP2,legacy,V1_R3_hybrid,10,0.53318,0.024361,0.017427,0.0,distinct
-synthetic,DGP2,legacy,V2_margin,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,legacy,V3_split_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,legacy,V4_mondrian_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,legacy,V5_scross,10,-1.0,0.0,0.0,0.0,distinct
-synthetic,DGP2,legacy,V7_oracle,10,0.990798,0.001929,0.00138,0.0,distinct
-synthetic,DGP2,v2_eligible,V0_random,10,-0.001193,0.016146,0.01155,0.0,distinct
-synthetic,DGP2,v2_eligible,V1_R1_high_pd,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_eligible,V1_R2_low_evidence,10,-0.040872,0.030368,0.021724,0.0,distinct
-synthetic,DGP2,v2_eligible,V1_R3_hybrid,10,0.53369,0.024198,0.01731,0.0,distinct
-synthetic,DGP2,v2_eligible,V2_margin,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_eligible,V3_split_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_eligible,V4_mondrian_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_eligible,V5_scross,10,-1.0,0.0,0.0,0.0,distinct
-synthetic,DGP2,v2_eligible,V7_oracle,10,0.990437,0.001713,0.001226,0.0,distinct
-synthetic,DGP2,v2_ineligible,V0_random,10,-0.011277,0.014021,0.01003,0.0,distinct
-synthetic,DGP2,v2_ineligible,V1_R1_high_pd,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_ineligible,V1_R2_low_evidence,10,-0.044925,0.031579,0.02259,0.0,distinct
-synthetic,DGP2,v2_ineligible,V1_R3_hybrid,10,0.531738,0.022328,0.015972,0.0,distinct
-synthetic,DGP2,v2_ineligible,V2_margin,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_ineligible,V3_split_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_ineligible,V4_mondrian_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_ineligible,V5_scross,10,-1.0,0.0,0.0,0.0,distinct
-synthetic,DGP2,v2_ineligible,V7_oracle,10,0.990811,0.002045,0.001463,0.0,distinct
-synthetic,DGP2,v2_unknown,V0_random,10,-0.001193,0.016146,0.01155,0.0,distinct
-synthetic,DGP2,v2_unknown,V1_R1_high_pd,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_unknown,V1_R2_low_evidence,10,-0.040872,0.030368,0.021724,0.0,distinct
-synthetic,DGP2,v2_unknown,V1_R3_hybrid,10,0.53369,0.024198,0.01731,0.0,distinct
-synthetic,DGP2,v2_unknown,V2_margin,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_unknown,V3_split_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_unknown,V4_mondrian_conformal,10,1.0,0.0,0.0,1.0,equivalent_to_R1
-synthetic,DGP2,v2_unknown,V5_scross,10,-1.0,0.0,0.0,0.0,distinct
-synthetic,DGP2,v2_unknown,V7_oracle,10,0.990437,0.001713,0.001226,0.0,distinct
-
+| dataset   | dgp   | rule_scenario   | method                |   n |   spearman_rho_mean |   spearman_rho_std |   spearman_rho_ci95 |   frac_identical_to_r1_b20 | rank_status      |
+|:----------|:------|:----------------|:----------------------|----:|--------------------:|-------------------:|--------------------:|---------------------------:|:-----------------|
+| synthetic | DGP1  | legacy          | V0_random             |  10 |            6.9e-05  |           0.011703 |            0.008372 |                          0 | distinct         |
+| synthetic | DGP1  | legacy          | V1_R1_high_pd         |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | legacy          | V1_R2_low_evidence    |  10 |           -0.037543 |           0.051463 |            0.036815 |                          0 | distinct         |
+| synthetic | DGP1  | legacy          | V1_R3_hybrid          |  10 |            0.456484 |           0.056281 |            0.040261 |                          0 | distinct         |
+| synthetic | DGP1  | legacy          | V2_margin             |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | legacy          | V3_split_conformal    |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | legacy          | V4_mondrian_conformal |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | legacy          | V5_scross             |  10 |           -1        |           0        |            0        |                          0 | distinct         |
+| synthetic | DGP1  | legacy          | V7_oracle             |  10 |            0.993363 |           0.00149  |            0.001066 |                          0 | distinct         |
+| synthetic | DGP1  | v2_eligible     | V0_random             |  10 |            0.006522 |           0.019016 |            0.013603 |                          0 | distinct         |
+| synthetic | DGP1  | v2_eligible     | V1_R1_high_pd         |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_eligible     | V1_R2_low_evidence    |  10 |           -0.036421 |           0.052732 |            0.037722 |                          0 | distinct         |
+| synthetic | DGP1  | v2_eligible     | V1_R3_hybrid          |  10 |            0.456394 |           0.058086 |            0.041552 |                          0 | distinct         |
+| synthetic | DGP1  | v2_eligible     | V2_margin             |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_eligible     | V3_split_conformal    |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_eligible     | V4_mondrian_conformal |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_eligible     | V5_scross             |  10 |           -1        |           0        |            0        |                          0 | distinct         |
+| synthetic | DGP1  | v2_eligible     | V7_oracle             |  10 |            0.99353  |           0.001226 |            0.000877 |                          0 | distinct         |
+| synthetic | DGP1  | v2_ineligible   | V0_random             |  10 |           -0.000207 |           0.019855 |            0.014203 |                          0 | distinct         |
+| synthetic | DGP1  | v2_ineligible   | V1_R1_high_pd         |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_ineligible   | V1_R2_low_evidence    |  10 |           -0.038324 |           0.053063 |            0.037959 |                          0 | distinct         |
+| synthetic | DGP1  | v2_ineligible   | V1_R3_hybrid          |  10 |            0.456861 |           0.057084 |            0.040836 |                          0 | distinct         |
+| synthetic | DGP1  | v2_ineligible   | V2_margin             |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_ineligible   | V3_split_conformal    |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_ineligible   | V4_mondrian_conformal |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_ineligible   | V5_scross             |  10 |           -1        |           0        |            0        |                          0 | distinct         |
+| synthetic | DGP1  | v2_ineligible   | V7_oracle             |  10 |            0.9933   |           0.001551 |            0.00111  |                          0 | distinct         |
+| synthetic | DGP1  | v2_unknown      | V0_random             |  10 |            0.006522 |           0.019016 |            0.013603 |                          0 | distinct         |
+| synthetic | DGP1  | v2_unknown      | V1_R1_high_pd         |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_unknown      | V1_R2_low_evidence    |  10 |           -0.036421 |           0.052732 |            0.037722 |                          0 | distinct         |
+| synthetic | DGP1  | v2_unknown      | V1_R3_hybrid          |  10 |            0.456394 |           0.058086 |            0.041552 |                          0 | distinct         |
+| synthetic | DGP1  | v2_unknown      | V2_margin             |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_unknown      | V3_split_conformal    |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_unknown      | V4_mondrian_conformal |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP1  | v2_unknown      | V5_scross             |  10 |           -1        |           0        |            0        |                          0 | distinct         |
+| synthetic | DGP1  | v2_unknown      | V7_oracle             |  10 |            0.99353  |           0.001226 |            0.000877 |                          0 | distinct         |
+| synthetic | DGP2  | legacy          | V0_random             |  10 |           -0.005391 |           0.012371 |            0.00885  |                          0 | distinct         |
+| synthetic | DGP2  | legacy          | V1_R1_high_pd         |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | legacy          | V1_R2_low_evidence    |  10 |           -0.042233 |           0.030596 |            0.021887 |                          0 | distinct         |
+| synthetic | DGP2  | legacy          | V1_R3_hybrid          |  10 |            0.53318  |           0.024361 |            0.017427 |                          0 | distinct         |
+| synthetic | DGP2  | legacy          | V2_margin             |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | legacy          | V3_split_conformal    |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | legacy          | V4_mondrian_conformal |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | legacy          | V5_scross             |  10 |           -1        |           0        |            0        |                          0 | distinct         |
+| synthetic | DGP2  | legacy          | V7_oracle             |  10 |            0.990798 |           0.001929 |            0.00138  |                          0 | distinct         |
+| synthetic | DGP2  | v2_eligible     | V0_random             |  10 |           -0.001193 |           0.016146 |            0.01155  |                          0 | distinct         |
+| synthetic | DGP2  | v2_eligible     | V1_R1_high_pd         |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_eligible     | V1_R2_low_evidence    |  10 |           -0.040872 |           0.030368 |            0.021724 |                          0 | distinct         |
+| synthetic | DGP2  | v2_eligible     | V1_R3_hybrid          |  10 |            0.53369  |           0.024198 |            0.01731  |                          0 | distinct         |
+| synthetic | DGP2  | v2_eligible     | V2_margin             |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_eligible     | V3_split_conformal    |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_eligible     | V4_mondrian_conformal |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_eligible     | V5_scross             |  10 |           -1        |           0        |            0        |                          0 | distinct         |
+| synthetic | DGP2  | v2_eligible     | V7_oracle             |  10 |            0.990437 |           0.001713 |            0.001226 |                          0 | distinct         |
+| synthetic | DGP2  | v2_ineligible   | V0_random             |  10 |           -0.011277 |           0.014021 |            0.01003  |                          0 | distinct         |
+| synthetic | DGP2  | v2_ineligible   | V1_R1_high_pd         |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_ineligible   | V1_R2_low_evidence    |  10 |           -0.044925 |           0.031579 |            0.02259  |                          0 | distinct         |
+| synthetic | DGP2  | v2_ineligible   | V1_R3_hybrid          |  10 |            0.531738 |           0.022328 |            0.015972 |                          0 | distinct         |
+| synthetic | DGP2  | v2_ineligible   | V2_margin             |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_ineligible   | V3_split_conformal    |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_ineligible   | V4_mondrian_conformal |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_ineligible   | V5_scross             |  10 |           -1        |           0        |            0        |                          0 | distinct         |
+| synthetic | DGP2  | v2_ineligible   | V7_oracle             |  10 |            0.990811 |           0.002045 |            0.001463 |                          0 | distinct         |
+| synthetic | DGP2  | v2_unknown      | V0_random             |  10 |           -0.001193 |           0.016146 |            0.01155  |                          0 | distinct         |
+| synthetic | DGP2  | v2_unknown      | V1_R1_high_pd         |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_unknown      | V1_R2_low_evidence    |  10 |           -0.040872 |           0.030368 |            0.021724 |                          0 | distinct         |
+| synthetic | DGP2  | v2_unknown      | V1_R3_hybrid          |  10 |            0.53369  |           0.024198 |            0.01731  |                          0 | distinct         |
+| synthetic | DGP2  | v2_unknown      | V2_margin             |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_unknown      | V3_split_conformal    |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_unknown      | V4_mondrian_conformal |  10 |            1        |           0        |            0        |                          1 | equivalent_to_R1 |
+| synthetic | DGP2  | v2_unknown      | V5_scross             |  10 |           -1        |           0        |            0        |                          0 | distinct         |
+| synthetic | DGP2  | v2_unknown      | V7_oracle             |  10 |            0.990437 |           0.001713 |            0.001226 |                          0 | distinct         |

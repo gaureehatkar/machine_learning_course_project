@@ -1,33 +1,37 @@
-# FINAL PROJECT TECHNICAL DOCUMENTATION v2
+# SynthGigCredit-IN — Technical Documentation (Current)
 
-SynthGigCredit-IN: policy-constrained credit decisioning for thin-file gig workers (research prototype).
+SynthGigCredit-IN is a research prototype for policy-constrained credit decisioning with an evidence score, three-valued policy evaluation, and optional manual review. Results are limited to the synthetic generator and Home Credit consumer-loan data.
 
-**Policy rules: UNVERIFIED.** Provenance in `configs/policy_rules/v2/` is placeholder text. Do not treat rule YAML as official PMMY/JanSamarth clauses.
+**Policy rules: UNVERIFIED.** Provenance fields in `configs/policy_rules/v2/` are placeholders. The rule files must not be treated as official PMMY text or as legal guidance. JanSamarth is a portal; this repository does not define a JanSamarth-wide eligibility rule.
 
-## System
+## System components
 
-Three layers, combined by D1–D4 gates:
+1. **Risk:** LR, RF, LightGBM, CatBoost, and XGBoost are used in the Phase 5/6 benchmark runs. Phase 5 applies Platt calibration fitted on validation data. WoE-LR was excluded because `optbinning`/`ropwr` caused a native crash in this Windows environment.
+2. **Evidence:** the prototype computes a score from history length, Account Aggregator completeness, and ULI completeness and compares it with an evidence threshold.
+3. **Policy:** a Kleene three-valued rule engine evaluates `SATISFIED`, `UNSATISFIED`, or `UNRESOLVED`. Decisions can be `APPROVE`, `REVIEW`, or `DECLINE` with reason codes. In the v2 PMMY scenarios, agricultural mapping is explicitly varied as `unknown`, `ineligible`, and `eligible`.
+4. **Review:** the benchmark pool is `{PD < τ and policy is not UNSATISFIED}`. Mandatory unresolved cases are handled first; the simulation's oracle reviewer is perfect by construction.
 
-1. **Risk** — LR / XGBoost (and Phase 5 baselines) with Platt calibration on validation. Train on `features_full`, score val/test on `features_visible`.
-2. **Evidence** — score from history length, AA completeness, ULI completeness; threshold τ_E.
-3. **Policy** — Kleene three-valued engine. Legacy YAML in `configs/policy_rules/`; v2 in `configs/policy_rules/v2/` (PMMY only; no JanSamarth file — JanSamarth is a portal).
-
-Decisions: APPROVE / REVIEW / DECLINE with reason codes. Review pool P = {PD < τ ∧ policy ≠ UNSATISFIED}; UNRESOLVED consumed first.
+The D1–D4 gates combine risk, evidence, and policy in different configurations. Measured comparisons and limitations are summarized in `research/BENCHMARK_RESULTS.md` and the phase reports under `results/benchmarks/reports/`.
 
 ## Interfaces
 
-- API: `app/api/` (if present in this copy).
-- Frontend / Streamlit demo: `app/main.py`. Demo PD is **heuristic unless replaced** by a fitted model artifact; do not cite demo scores as T1/T2 numbers.
-- Tests: `pytest tests/`.
+- FastAPI endpoints are in `app/api/`.
+- The Streamlit demo is `app/main.py`; the web frontend is under `ML Froent end/ml-frontend/`.
+- The demo's PD is **heuristic unless replaced by a fitted model artifact**. Do not cite demo scores as T1/T2 benchmark results.
+- The API and demo do not establish official policy provenance. Rule sets remain UNVERIFIED.
 
-## Experiments
+## Experiments and artifacts
 
-T1–T9 originals remain in `research/tables/` and `results/authentic/`. Benchmark re-runs: `results/benchmarks/`, `research/tables/benchmarks/`. Paper-facing summary: `research/BENCHMARK_RESULTS.md`.
+- Original T1–T9 outputs remain under `results/authentic/` and `research/tables/`.
+- New benchmark outputs are under `results/benchmarks/` and `research/tables/benchmarks/`.
+- F1–F11 figures are in `research/figures/`; generated Markdown and LaTeX tables are in `research/paper_tables/`.
+- Use logistic calibration slope for calibration interpretation. The old OLS slope near 0.075 on Home Credit is reported as an estimator artifact. Phase 5 slope columns were regenerated with the corrected argument order; near-chance Set B results remain outside the calibration acceptance interval and are not described as calibrated.
+- Phase 7 V6 expected-loss ranking was skipped because the synthetic data has no loan amount/exposure column. V5 is the documented simplified SCROSS-style method.
 
-## Calibration
+## Reproduction
 
-Use logistic slope (`calibration_slope_intercept`). The OLS slope (~0.075 on Home Credit) is a documented artifact. Phase 5 CSV slope columns were written with swapped arguments and are not usable until regenerated.
+Use the pinned dependencies in `requirements.lock` and run `make reproduce` to execute the configured Phase 1–10 pipeline, regenerate benchmark outputs, figures, tables, reports, and the Phase 10 test/claim audit. The Home Credit file is not redistributed; see `README.md` for data availability and setup commands.
 
-## What this document is not
+## Claim boundary
 
-Not a claim of field performance on Indian gig workers. Home Credit is a Kaggle consumer-loan dataset. Synthetic labels follow the generator.
+Synthetic default labels are generated by the DGP. Home Credit is a consumer-loan dataset, not an Indian gig-worker dataset. Neither source establishes field performance or temporal generalization for Indian gig lending. Policy rules remain UNVERIFIED until official source text is supplied and reviewed.

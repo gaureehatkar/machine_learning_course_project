@@ -1,0 +1,266 @@
+{
+  "protocol": {
+    "n_trials": 30,
+    "cv_folds": 5,
+    "seed": 42,
+    "scoring": "roc_auc",
+    "feature_sets": [
+      "A",
+      "C"
+    ],
+    "benchmark_config_sha256": "2089c0caba4d7f8c8dbb9ad85abe6d44e98ac1255abdb0a919c58d1ead0ecff2"
+  },
+  "dgp1": {
+    "A": {
+      "lr": {
+        "best_params": {
+          "C": 0.5,
+          "max_iter": 1000,
+          "solver": "lbfgs"
+        },
+        "best_cv_auc": 0.9205
+      },
+      "rf": {
+        "best_params": {
+          "max_depth": 6,
+          "max_features": "sqrt",
+          "min_samples_split": 10,
+          "n_estimators": 100
+        },
+        "best_cv_auc": 0.919
+      },
+      "lgbm": {
+        "best_params": {
+          "colsample_bytree": 1.0,
+          "learning_rate": 0.1,
+          "max_depth": 4,
+          "n_estimators": 50,
+          "num_leaves": 31,
+          "subsample": 0.8
+        },
+        "best_cv_auc": 0.923
+      },
+      "catboost": {
+        "best_params": {
+          "depth": 6,
+          "iterations": 150,
+          "l2_leaf_reg": 5.0,
+          "learning_rate": 0.1
+        },
+        "best_cv_auc": 0.9235
+      },
+      "xgb": {
+        "best_params": {
+          "colsample_bytree": 1.0,
+          "learning_rate": 0.1,
+          "max_depth": 3,
+          "n_estimators": 100,
+          "subsample": 0.8
+        },
+        "best_cv_auc": 0.9231
+      }
+    },
+    "C": {
+      "lr": {
+        "best_params": {
+          "C": 5.0,
+          "max_iter": 1000,
+          "solver": "lbfgs"
+        },
+        "best_cv_auc": 0.9204
+      },
+      "rf": {
+        "best_params": {
+          "max_depth": 6,
+          "max_features": "log2",
+          "min_samples_split": 5,
+          "n_estimators": 100
+        },
+        "best_cv_auc": 0.9169
+      },
+      "lgbm": {
+        "best_params": {
+          "colsample_bytree": 1.0,
+          "learning_rate": 0.03,
+          "max_depth": 6,
+          "n_estimators": 150,
+          "num_leaves": 15,
+          "subsample": 0.8
+        },
+        "best_cv_auc": 0.9225
+      },
+      "catboost": {
+        "best_params": {
+          "depth": 6,
+          "iterations": 150,
+          "l2_leaf_reg": 5.0,
+          "learning_rate": 0.1
+        },
+        "best_cv_auc": 0.9228
+      },
+      "xgb": {
+        "best_params": {
+          "colsample_bytree": 0.8,
+          "learning_rate": 0.1,
+          "max_depth": 4,
+          "n_estimators": 50,
+          "subsample": 1.0
+        },
+        "best_cv_auc": 0.9226
+      }
+    }
+  },
+  "dgp2": {
+    "A": {
+      "lr": {
+        "best_params": {
+          "C": 1.0,
+          "max_iter": 1000,
+          "solver": "lbfgs"
+        },
+        "best_cv_auc": 0.9213
+      },
+      "rf": {
+        "best_params": {
+          "max_depth": 6,
+          "max_features": "sqrt",
+          "min_samples_split": 10,
+          "n_estimators": 100
+        },
+        "best_cv_auc": 0.9205
+      },
+      "lgbm": {
+        "best_params": {
+          "colsample_bytree": 1.0,
+          "learning_rate": 0.03,
+          "max_depth": 6,
+          "n_estimators": 150,
+          "num_leaves": 15,
+          "subsample": 0.8
+        },
+        "best_cv_auc": 0.9235
+      },
+      "catboost": {
+        "best_params": {
+          "depth": 6,
+          "iterations": 150,
+          "l2_leaf_reg": 5.0,
+          "learning_rate": 0.1
+        },
+        "best_cv_auc": 0.9243
+      },
+      "xgb": {
+        "best_params": {
+          "colsample_bytree": 1.0,
+          "learning_rate": 0.05,
+          "max_depth": 4,
+          "n_estimators": 100,
+          "subsample": 1.0
+        },
+        "best_cv_auc": 0.9233
+      }
+    },
+    "C": {
+      "lr": {
+        "best_params": {
+          "C": 1.0,
+          "max_iter": 1000,
+          "solver": "lbfgs"
+        },
+        "best_cv_auc": 0.9211
+      },
+      "rf": {
+        "best_params": {
+          "max_depth": 6,
+          "max_features": "log2",
+          "min_samples_split": 5,
+          "n_estimators": 50
+        },
+        "best_cv_auc": 0.919
+      },
+      "lgbm": {
+        "best_params": {
+          "colsample_bytree": 1.0,
+          "learning_rate": 0.03,
+          "max_depth": 6,
+          "n_estimators": 150,
+          "num_leaves": 15,
+          "subsample": 0.8
+        },
+        "best_cv_auc": 0.9237
+      },
+      "catboost": {
+        "best_params": {
+          "depth": 6,
+          "iterations": 150,
+          "l2_leaf_reg": 5.0,
+          "learning_rate": 0.1
+        },
+        "best_cv_auc": 0.924
+      },
+      "xgb": {
+        "best_params": {
+          "colsample_bytree": 1.0,
+          "learning_rate": 0.1,
+          "max_depth": 3,
+          "n_estimators": 100,
+          "subsample": 0.8
+        },
+        "best_cv_auc": 0.9235
+      }
+    }
+  },
+  "home_credit_training_rows": 184506,
+  "home_credit": {
+    "all": {
+      "lr": {
+        "best_params": {
+          "C": 0.5,
+          "max_iter": 1000,
+          "solver": "lbfgs"
+        },
+        "best_cv_auc": 0.6745
+      },
+      "rf": {
+        "best_params": {
+          "max_depth": 6,
+          "max_features": "sqrt",
+          "min_samples_split": 10,
+          "n_estimators": 100
+        },
+        "best_cv_auc": 0.7313
+      },
+      "lgbm": {
+        "best_params": {
+          "colsample_bytree": 0.8,
+          "learning_rate": 0.1,
+          "max_depth": 4,
+          "n_estimators": 150,
+          "num_leaves": 31,
+          "subsample": 0.8
+        },
+        "best_cv_auc": 0.7564
+      },
+      "catboost": {
+        "best_params": {
+          "depth": 6,
+          "iterations": 150,
+          "l2_leaf_reg": 1.0,
+          "learning_rate": 0.1
+        },
+        "best_cv_auc": 0.7541
+      },
+      "xgb": {
+        "best_params": {
+          "colsample_bytree": 0.8,
+          "learning_rate": 0.1,
+          "max_depth": 4,
+          "n_estimators": 150,
+          "subsample": 0.8
+        },
+        "best_cv_auc": 0.7564
+      }
+    }
+  },
+  "in_progress": {}
+}

@@ -14,7 +14,6 @@ PATTERNS = [
     (r"impossible with (a )?single[- ]score", "single-score impossibility"),
     (r"no existing system", "novelty overclaim"),
     (r"outperforms existing methods", "needs a table reference"),
-    (r"SHAP explanations", "API/demo SHAP claim"),
     (r"underprediction", "calibration underprediction narrative"),
 ]
 
@@ -34,6 +33,15 @@ def outperforms_without_table(text: str) -> list[str]:
         window = m.group(0)
         if not re.search(r"(Table|Tab\.|statistical_tests|review_baselines|risk_baselines)", window):
             hits.append(window.strip())
+    return hits
+
+
+def shap_api_demo_hits(text: str) -> list[str]:
+    hits = []
+    for m in re.finditer(r"SHAP explanations", text, flags=re.IGNORECASE):
+        window = text[max(0, m.start() - 120): min(len(text), m.end() + 120)]
+        if re.search(r"\b(api|demo|app|endpoint)\b", window, flags=re.IGNORECASE):
+            hits.append(window.strip().replace("\n", " "))
     return hits
 
 
@@ -67,6 +75,8 @@ def main() -> int:
             warnings.append(f"{fp.relative_to(ROOT)}: verified near policy/rules: {h!r}")
         for h in outperforms_without_table(text):
             warnings.append(f"{fp.relative_to(ROOT)}: outperforms existing methods without table ref: {h!r}")
+        for h in shap_api_demo_hits(text):
+            warnings.append(f"{fp.relative_to(ROOT)}: SHAP claim in API/demo context: {h!r}")
 
     if warnings:
         print(f"WARN {len(warnings)} forbidden-phrase hits:")

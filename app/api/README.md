@@ -64,66 +64,7 @@ Make a credit decision on an applicant.
 }
 ```
 
-**Response:**
-```json
-{
-  "applicant_id": "APP001",
-  "decision_date": "2026-09-29",
-  "outcome": "APPROVE",
-  "recommendation": "Applicant passed evidence and policy gates with acceptable risk.",
-  "evidence_gate": {
-    "gate_name": "evidence",
-    "passed": true,
-    "reasoning": "Evidence score 0.725 ≥ threshold 0.5",
-    "details": {
-      "score": 0.725,
-      "threshold": 0.5,
-      "history_length": 12,
-      "aa_completeness": 0.95,
-      "uli_completeness": 0.8
-    }
-  },
-  "policy_gate": {
-    "gate_name": "policy",
-    "passed": true,
-    "reasoning": "Policy state: SATISFIED",
-    "details": {
-      "schemes_evaluated": {
-        "jan_samarth": "SATISFIED",
-        "pmmy": "SATISFIED"
-      },
-      "age": 35,
-      "income": 25000.0,
-      "occupation": "ride_hailing"
-    }
-  },
-  "risk_rank": {
-    "gate_name": "risk_rank",
-    "passed": true,
-    "reasoning": "Risk rank: low (PD 0.156)",
-    "details": {
-      "pd_estimate": 0.156,
-      "risk_rank": "low",
-      "bins": [3, 5, 10]
-    }
-  },
-  "risk_score": 0.156,
-  "explanation": {
-    "model": "xgb",
-    "applicant_id": "APP001",
-    "predicted_pd": 0.156,
-    "top_shap_features": [
-      {
-        "feature": "income_mean",
-        "shap": 0.082,
-        "value": 25000
-      }
-    ]
-  },
-  "model_version": "0.1.0",
-  "mode": "production"
-}
-```
+**Response fields:** `outcome` (`APPROVE`, `REVIEW`, `DECLINE`), the three gate objects, `risk_score`, `risk_source`, `tau_used`, `tau_e_used`, `credit_score`, `explanation`, and the normalized `mode` (`D1`–`D4`). Risk source is `override_xgb`, `override_lr`, or `heuristic`. The score is illustrative and does not affect the decision.
 
 ### `GET /api/health`
 
@@ -135,7 +76,8 @@ Service health check.
   "status": "ok",
   "mode": "research",
   "version": "0.1.0",
-  "message": "SynthGigCredit research prototype is operational"
+  "message": "SynthGigCredit research prototype is operational; PD uses a heuristic unless supplied",
+  "model_loaded": false
 }
 ```
 
@@ -149,10 +91,23 @@ Get current configuration and thresholds.
   "approval_target": 0.7,
   "evidence_threshold": 0.5,
   "policy_schemes": ["jan_samarth", "pmmy"],
-  "risk_bins": [3, 5, 10],
-  "decision_date": "2026-09-29"
+  "risk_bins": [0.1, 0.3],
+  "decision_date": "2026-10-23",
+  "default_tau": 0.4
 }
 ```
+
+### `GET /api/model_status`
+
+Reports whether inference model artifacts are loaded and returns saved T1 benchmark metrics when available. In the current prototype, no trained inference artifact is loaded, so decisions use the request PD override or the heuristic.
+
+### `POST /api/explain`
+
+Builds explanation JSON from a prior decision's PD, thresholds, outcome, evidence status, and policy state. It does not compute SHAP values.
+
+### `POST /api/evaluate_batch`
+
+Accepts `{"applicants": [...], "decision_mode": "D4", "tau": 0.3, "tau_e": 0.5}`. Batch applicant records use `age`, `income_monthly`, `history_length`, `aa_completeness`, `uli_completeness`, `occupation`, `nonfarm_engaged`, and optional `pd_xgb` or `pd_lr`. Empty batches and out-of-range thresholds are rejected with HTTP 422. Each result uses the same decision code as `/api/decide`.
 
 ## 3-Layer Decision Logic
 
@@ -160,15 +115,12 @@ Get current configuration and thresholds.
    - Passes if evidence_score ≥ τ_e (0.5)
    - **Outcome**: PASS or FAIL
 
-2. **Policy Gate**: Evaluates eligibility against government policies (JanSamarth, PMMY)
-   - Evaluates age, income, occupation rules
-   - Combines policies using Kleene OR (any satisfied = pass)
-   - **Outcome**: SATISFIED, UNRESOLVED, or UNSATISFIED
+2. **Policy Gate**: Evaluates the configured JanSamarth and PMMY research rules
+   - Combines rule states using the configured three-valued logic
+   - Rule provenance is UNVERIFIED; results are not an eligibility determination
 
-3. **Risk Rank**: Estimates probability of default (PD)
-   - Uses trained XGBoost-C or Logistic Regression model
-   - Falls back to heuristic if models not available
-   - Maps PD to risk rank (low/medium/high)
+3. **Risk Rank**: Uses a supplied PD override when present, otherwise the documented heuristic
+   - Maps PD to low (<0.10), medium (0.10–<0.30), or high (≥0.30)
    - **Outcome**: PD score and rank
 
 ## Final Decision Tree (D4 Mode)
@@ -185,37 +137,9 @@ Evidence < τ_e (0.5)   → REVIEW (insufficient data)
                           → APPROVE (all gates pass)
 ```
 
-## Integration with Trained Models
+## PD source and explanations
 
-Once trained models are available:
-
-1. Place XGBoost model artifact at: `results/authentic/xgb_c_model.pkl`
-2. Place Logistic Regression artifact at: `results/authentic/lr_c_model.pkl`
-
-The API will automatically load and use these models in `/api/decide` endpoint.
-
-To use heuristic PD instead (for testing without trained models):
-```json
-{
-  "applicant": {
-    ...
-    "pd_xgb": null,
-    "pd_lr": null,
-    ...
-  }
-}
-```
-
-## Explanation Types
-
-### XGBoost Explanation
-Uses TreeSHAP (Shapley Additive exPlanations) for feature importance ranking.
-
-### Logistic Regression Explanation
-Uses coefficient-based interpretation:
-- **Coefficients**: Log-odds per unit feature change
-- **Odds Ratios**: Multiplicative change in odds
-- **Feature Contributions**: Per-applicant contribution to log-odds
+No trained inference model is currently loaded by this API. If `pd_xgb` is provided, it takes precedence over `pd_lr`; if neither is supplied, the heuristic is used. `/api/model_status` distinguishes benchmark metrics from an inference model artifact. Explanation output contains decision, evidence, and policy details; it does not contain SHAP explanations.
 
 ## Error Handling
 
@@ -223,10 +147,13 @@ Uses coefficient-based interpretation:
 - **500 Internal Server Error**: Processing error (invalid features, model error)
 - **422 Unprocessable Entity**: Invalid request schema
 
-## Mode Flags
+## Decision modes
 
-- `decision_mode: "production"` — Full 3-layer decision (D4)
-- `decision_mode: "diagnostic"` — Same as production (for future testing modes)
+- `D1`: PD gate only
+- `D2`: PD and policy gates
+- `D3`: PD and evidence gates
+- `D4`: all three gates
+- Legacy request labels `production` and `diagnostic` map to `D4`.
 
 - `explain: true` — Include explanation JSON in response
 - `explain: false` — Return decision only (faster)
@@ -234,7 +161,6 @@ Uses coefficient-based interpretation:
 ## Performance Notes
 
 - **Average decision time**: 10-50ms (without model inference)
-- **With trained model inference**: 50-200ms
 - **Max batch size recommended**: 1000 applicants/request
 
 ## Development Notes

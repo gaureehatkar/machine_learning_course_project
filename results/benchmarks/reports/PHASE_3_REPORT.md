@@ -64,4 +64,4 @@ Evaluated across $N=5,000$ test applicants $\times$ 10 seeds:
 
 - **Audit Search**: Verified all synthetic data parquet tables (`applicants`, `features_full`, `features_visible`, `latent_params`, `monthly`, `policy_attributes`, `policy_truth`).
 - **Empirical Finding**: **No loan exposure, requested amount, or exposure-at-default column exists in the synthetic data generator.**
-- **Downstream Consequence**: In Phase 7 (Review-Allocation Baselines), Baseline V6 (Expected Loss allocation) requires individual exposure $E_i \cdot PD_i \cdot LGD_i$. Because exposure does not vary across applicants in the DGP, unit exposure ($E_i=1, LGD=1$) will be reported for V6 (making it rank-equivalent to risk-score sorting), and the absence of exposure variation will be explicitly noted in `research/tables/benchmarks/review_baselines.csv` and the technical paper documentation.
+- **Downstream Consequence**: Phase 7 V6 (expected-loss ranking) was skipped because the DGP contains no applicant exposure or requested loan amount. No unit exposure was invented. The skip is documented in `results/benchmarks/reports/PHASE_7_REPORT.md` and `research/BENCHMARK_RESULTS.md`.

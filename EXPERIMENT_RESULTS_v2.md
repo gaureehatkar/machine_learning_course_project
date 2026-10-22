@@ -28,7 +28,7 @@
 
 ## T1: Authentic Baseline
 
-**Pre-existing, verified result.** Home Credit Default Risk dataset (307,511 applicants).
+**T1 v2 rerun.** Home Credit Default Risk dataset (307,511 applicants). The benchmark rerun is the source for the calibration values below.
 
 | Metric | LR | XGBoost |
 |---|---|---|
@@ -36,7 +36,8 @@
 | PR-AUC | 0.2213 | 0.2447 |
 | Brier | 0.0689 | 0.0678 |
 | ECE | 0.00240 | 0.00247 |
-| Cal. Slope | 0.0742 | 0.0755 |
+| Logistic calibration slope | 1.0132 | 1.0224 |
+| Deprecated OLS slope (artifact) | 0.0742 | 0.0755 |
 
 **Source:** `results/authentic/T1_results.json`  
 **Note:** This is the ONLY experiment on real data. All others use synthetic data.
@@ -51,7 +52,7 @@
 
 ### DGP1 (Base Model)
 
-| Config | ROC-AUC | PR-AUC | Brier | ECE | Cal. Slope | Gini | KS |
+| Config | ROC-AUC | PR-AUC | Brier | ECE | OLS slope (deprecated) | Gini | KS |
 |---|---|---|---|---|---|---|---|
 | A_logreg | 0.9137±0.003 | 0.6476±0.016 | 0.0650±0.002 | 0.0087±0.001 | 0.0659±0.002 | 0.8275±0.006 | 0.6842±0.011 |
 | A_xgb | **0.9218±0.003** | **0.6725±0.012** | **0.0636±0.002** | 0.0087±0.002 | 0.0768±0.003 | **0.8436±0.005** | **0.6895±0.011** |
@@ -62,7 +63,7 @@
 
 ### DGP2 (Income Shock)
 
-| Config | ROC-AUC | PR-AUC | Brier | ECE | Cal. Slope | Gini | KS |
+| Config | ROC-AUC | PR-AUC | Brier | ECE | OLS slope (deprecated) | Gini | KS |
 |---|---|---|---|---|---|---|---|
 | A_logreg | 0.9086±0.004 | 0.6672±0.009 | 0.0721±0.002 | 0.0081±0.001 | 0.0731±0.002 | 0.8172±0.008 | 0.6674±0.008 |
 | A_xgb | **0.9152±0.004** | **0.6911±0.006** | **0.0710±0.001** | 0.0085±0.002 | 0.0821±0.003 | **0.8305±0.007** | **0.6739±0.009** |
@@ -199,7 +200,7 @@
 
 ### DGP1
 
-| H | ROC-AUC | PR-AUC | Brier | ECE | Cal. Slope | Gini | KS |
+| H | ROC-AUC | PR-AUC | Brier | ECE | OLS slope (deprecated) | Gini | KS |
 |---|---|---|---|---|---|---|---|
 | H=1 | 0.8921±0.011 | 0.597±0.022 | 0.078±0.007 | 0.042±0.015 | 0.076±0.006 | 0.784±0.022 | 0.632±0.032 |
 | H=3 | 0.9033±0.005 | 0.624±0.015 | 0.069±0.002 | 0.019±0.003 | 0.078±0.004 | 0.807±0.010 | 0.647±0.012 |
@@ -208,7 +209,7 @@
 
 ### DGP2
 
-| H | ROC-AUC | PR-AUC | Brier | ECE | Cal. Slope | Gini | KS |
+| H | ROC-AUC | PR-AUC | Brier | ECE | OLS slope (deprecated) | Gini | KS |
 |---|---|---|---|---|---|---|---|
 | H=1 | 0.8868±0.005 | 0.627±0.014 | 0.084±0.003 | 0.042±0.007 | 0.082±0.005 | 0.774±0.010 | 0.617±0.013 |
 | H=3 | 0.8993±0.005 | 0.649±0.010 | 0.077±0.002 | 0.020±0.003 | 0.083±0.004 | 0.799±0.010 | 0.639±0.013 |
@@ -216,6 +217,8 @@
 | H=12 | **0.9212±0.005** | **0.710±0.009** | **0.069±0.001** | **0.010±0.002** | 0.092±0.004 | **0.843±0.009** | **0.683±0.012** |
 
 ### Key Findings — T6
+
+The slope entries in the tables above are the historical OLS estimator. Corrected logistic slopes for XGBoost-C are H=1/3/6/12: 0.8079/0.8462/0.9335/1.1197 on DGP1 and 0.8123/0.8417/0.9336/1.1065 on DGP2. Source: `research/tables/benchmarks/calibration_old_vs_new.csv`.
 
 1. **More history = better performance.** AUC increases monotonically: H=1 (0.89) → H=12 (0.93). Gini follows: 0.78 → 0.85.
 2. **More history = better calibration.** ECE drops from 0.042 (H=1) to 0.010 (H=12). Brier drops from 0.078 to 0.062.
@@ -227,41 +230,7 @@
 
 ## Calibration Analysis
 
-### T1 Authentic (Home Credit)
-
-| Metric | LR | XGB |
-|---|---|---|
-| ECE | 0.00240 | 0.00247 |
-| Calibration slope | 0.0742 | 0.0755 |
-| Calibration intercept | 0.2855 | 0.2933 |
-
-### T2 Synthetic (DGP1, A_xgb)
-
-| Metric | Value |
-|---|---|
-| ECE | 0.0087±0.002 |
-| Calibration slope | 0.0768±0.003 |
-
-### T6 History Sensitivity (DGP1, XGB-C)
-
-| H | ECE | Calibration slope |
-|---|---|---|
-| H=1 | 0.042±0.015 | 0.076±0.006 |
-| H=3 | 0.019±0.003 | 0.078±0.004 |
-| H=6 | 0.012±0.002 | 0.081±0.004 |
-| H=12 | 0.010±0.002 | 0.084±0.005 |
-
-### Investigation of Low Calibration Slope
-
-**Observation:** Calibration slope ≈ 0.07-0.09 across ALL experiments and both datasets. Ideal is 1.0.
-
-**Root cause:** The model's predicted probabilities are clustered in a narrow range around the base rate (~12% for synthetic, ~8% for Home Credit). The model can rank applicants well (AUC 0.92) but cannot spread probabilities wide enough.
-
-**Why ECE is low despite low slope:** ECE measures absolute deviation within bins. If all predictions are near the base rate (e.g., 0.10-0.15), and the actual default rate is also ~12%, then ECE will be low even though the model can't distinguish 5% from 25% risk.
-
-**What low ECE + low slope means:** The model is well-calibrated at the population level (average prediction matches average outcome) but poorly calibrated at the individual level (can't differentiate high-risk from low-risk in absolute probability terms).
-
-**Not a code bug.** This is a data limitation — missing bureau/external credit features that would anchor absolute probability. Platt scaling is correctly implemented; it just can't fix a model that doesn't have enough information to spread probabilities.
+Use the logistic slope of the outcome on the logit of calibrated probability. On Home Credit T1 v2, logistic slopes are 1.0132 for LR and 1.0224 for XGBoost; the old OLS slopes 0.0742 and 0.0755 are estimator artifacts. On T2 A/C and T6, corrected values are in `research/tables/benchmarks/calibration_old_vs_new.csv`. T2 Set B has near-chance ranking and out-of-range slopes, so those predictions are not described as calibrated. Source: `research/tables/benchmarks/calibration_old_vs_new.csv`, `results/benchmarks/T1_v2/T1_results_v2.json`.
 
 ---
 
@@ -419,9 +388,9 @@ All metrics reported as mean ± 95% CI across 10 seeds. Standard deviations are 
 
 4. **History matters:** 12 months of history gives AUC 0.927 vs 0.892 for 1 month. ECE drops from 0.042 to 0.010. More data = better decisions. (T6)
 
-5. **Calibration is a known limitation:** Slope ≈ 0.07-0.08 (should be 1.0) across all experiments. Root cause: missing bureau features. Ranking is excellent (AUC 0.92, KS 0.70); absolute probabilities are not reliable. (T1, T2, T6)
+5. **Calibration:** The corrected T1 and Phase 5 logistic slopes are near 1. The low historical Home Credit slope was OLS; the T2 Set B no-signal configurations have out-of-range logistic slopes and are reported as uncalibrated. (T1, T2, Phase 5)
 
-6. **Cost:** R1 (entropy) saves ~2-3% cost vs R0 (random). 20% budget is more cost-efficient than 30%. (T4/T5)
+6. **Cost:** Phase 7 reports cost over a common review-cost sensitivity grid. The grid does not support a universal claim that one review budget is more cost-efficient. (Phase 7)
 
 7. **Fairness (T9):** e-Shram registered vs not: approval-rate disparity +0.53pp (DGP1 mean 0.0053, 95% CI ±0.0135, CI crosses zero) and +0.50pp on DGP2 (0.0050 ± 0.0084). Independent by DGP design (`policy_effect_delta = 0`). Source: `research/tables/T9_fairness_aggregated.csv`. Real-world fairness claims are not supported.
 

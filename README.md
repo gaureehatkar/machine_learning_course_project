@@ -128,16 +128,17 @@ python -m pip install -r requirements.lock
 make reproduce
 ```
 
-`make reproduce` runs the configured Phases 1–10 pipeline, including benchmark reruns, reports, figures, paper tables, claim scan, and the full test suite after each phase. It does **not** overwrite `results/authentic/` or original `research/tables/T*.csv`. Phase 7 has previously taken about 10.8 hours on this host; reruns can take longer.
-Use the pinned environment: the audited host's global installation has NumPy 2.2.6 while the lock pins 1.26.4, and XGBoost import terminated with a native access violation.
+`make reproduce` runs Phases 1–10 in order, including benchmark reruns, reports, figures, paper tables, the claim scan, and the test suite after each phase. Use the pinned environment from `requirements.lock`.
 
-| Step | Command | Runtime observed on this Windows host |
+| Step | Command | Runtime evidence |
 |---|---|---|
-| Phase 5 risk baselines | `python -u research/run_phase5_risk_baselines.py` | ~20 min (prior run 1220 s) |
-| Phase 7 review | `python -u research/run_phase7_review_baselines.py` | ~10.8 h (one seed stalled; typical seed 2–40 s) |
-| Phase 8 stats | `python -u research/run_phase8_statistical_tests.py` | seconds |
-| Figures / tables | `python -u research/make_figures.py` / `make_paper_tables.py` | seconds–minutes |
-| Tests | `pytest` | ~1–2 min |
+| Phase 2 policy rerun | `python -u research/run_phase2_policy_v2.py` | 67.6 seconds in `results/benchmarks/policy_v2/manifest.json` |
+| Phase 5 risk baselines | `python -u research/run_phase5_risk_baselines.py` | Final checkpoint-resume invocation: 671.3 seconds in `results/benchmarks/reports/PHASE_5_REPORT.md`; this is not a cold full-tuning runtime. |
+| Phase 7 review | `python -u research/run_phase7_review_baselines.py` | Completed; wall-clock duration was not recorded in its report. |
+| Phase 8 stats | `python -u research/run_phase8_statistical_tests.py` | Completed; wall-clock duration was not recorded. |
+| Figures / tables | `python -u research/make_figures.py` / `make_paper_tables.py` | Completed; wall-clock durations were not recorded. |
+| Full `make reproduce` pipeline | `make reproduce` | No end-to-end wall-clock measurement is available. Phase 5 tuning and repeated test-suite runs dominate the work. |
+| Tests | `pytest -q` | The Phase 10 JUnit report records the measured final test counts. |
 
 To regenerate only the reporting layer from already available upstream CSVs:
 
@@ -147,7 +148,7 @@ python -u research/make_figures.py
 python -u research/make_paper_tables.py
 python -u research/write_phase9_report.py
 python -u scripts/check_forbidden_claims.py
-pytest -q
+pytest -q --junitxml=results/benchmarks/reports/phase10_junit.xml
 python -u research/write_phase10_report.py
 ```
 

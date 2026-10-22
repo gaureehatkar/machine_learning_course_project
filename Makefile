@@ -48,7 +48,7 @@ phase9: phase8
 
 phase10: phase9
 	python -u scripts/check_forbidden_claims.py
-	pytest -q
+	pytest -q --junitxml=results/benchmarks/reports/phase10_junit.xml
 	python -u research/write_phase10_report.py
 
 figures:

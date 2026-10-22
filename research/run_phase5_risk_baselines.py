@@ -38,16 +38,12 @@ from __future__ import annotations
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
-# optbinning import deferred — ropwr native crash on Python 3.12/numpy 1.26 Windows
-# woe_lr is excluded from MODEL_FAMILIES; this import is a no-op here.
-try:
-    import optbinning  # noqa: F401
-    print("[phase5] optbinning imported OK", flush=True)
-except Exception as _e:
-    print(f"[phase5] optbinning unavailable: {_e}", flush=True)
+# WoE-LR is excluded from MODEL_FAMILIES because optbinning/ropwr can crash
+# the interpreter on Windows. Do not import the optional native extension here.
 
 import hashlib
-import json, sys, time
+import gc
+import json, subprocess, sys, time
 from pathlib import Path
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version
@@ -57,6 +53,7 @@ import pandas as pd
 from scipy.stats import t as t_dist
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss
+from threadpoolctl import threadpool_limits
 import yaml
 
 ROOT = Path(__file__).parent.parent
@@ -81,6 +78,7 @@ from research.phase1_preflight_and_t1 import load_and_prepare_v2
 
 OUT_JSON = ROOT / "results/benchmarks/tuned_params.json"
 TUNING_MANIFEST = ROOT / "results/benchmarks/tuned_params_manifest.json"
+TUNING_CHECKPOINT = ROOT / "results/benchmarks/tuned_params_checkpoint.json"
 TABLES = ROOT / "research/tables/benchmarks"
 REPORTS = ROOT / "results/benchmarks/reports"
 TABLES.mkdir(parents=True, exist_ok=True)
@@ -102,6 +100,8 @@ def tune_family(
     n_iter: int = 30,
     seed: int = 42,
     cv_folds: int = 5,
+    resume_state: dict | None = None,
+    progress_callback=None,
 ) -> dict:
     """Tune a model family with stratified CV using training data only."""
     candidates = sample_hyperparameters(
@@ -109,32 +109,74 @@ def tune_family(
     )
     skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=seed)
 
-    best_score = -1.0
-    best_params = candidates[0]
+    best_score = float((resume_state or {}).get("best_score", -1.0))
+    best_params = (resume_state or {}).get("best_params", candidates[0])
+    next_candidate = int((resume_state or {}).get("next_candidate", 0))
+    current_cv_scores = list((resume_state or {}).get("current_cv_scores", []))
+    score_cache = dict((resume_state or {}).get("score_cache", {}))
+    if next_candidate and not score_cache and best_score >= 0:
+        # Upgrade a checkpoint written before duplicate-score caching was added.
+        score_cache[json.dumps(best_params, sort_keys=True)] = [best_score]
 
     if family in ("woe_lr", "woe-lr", "scorecard"):
         # woe_lr excluded on this platform (ropwr native crash).
         return {"best_cv_auc": float("nan"), "best_params": {}, "n_trials": 0,
                 "note": "woe_lr skipped: ropwr native crash on Python 3.12/numpy 1.26"}
 
-    for params in candidates:
-        cv_scores = []
-        for tr_idx, val_idx in skf.split(X, y):
-            X_tr_fold = X.iloc[tr_idx] if isinstance(X, pd.DataFrame) else X[tr_idx]
-            y_tr_fold = y[tr_idx]
-            X_va_fold = X.iloc[val_idx] if isinstance(X, pd.DataFrame) else X[val_idx]
-            y_va_fold = y[val_idx]
+    # Keep native BLAS/OpenMP pools small on Windows and release fold objects
+    # promptly; Home Credit's repeated full-size fits otherwise can exhaust or
+    # corrupt the native heap in long tuning runs.
+    with threadpool_limits(limits=1):
+      for candidate_idx in range(next_candidate, len(candidates)):
+        params = candidates[candidate_idx]
+        params_key = json.dumps(params, sort_keys=True)
+        if params_key in score_cache:
+            cv_scores = list(score_cache[params_key])
+        else:
+            cv_scores = current_cv_scores if candidate_idx == next_candidate else []
+            for fold_idx, (tr_idx, val_idx) in enumerate(skf.split(X, y)):
+                if fold_idx < len(cv_scores):
+                    continue
+                X_tr_fold = X.iloc[tr_idx] if isinstance(X, pd.DataFrame) else X[tr_idx]
+                y_tr_fold = y[tr_idx]
+                X_va_fold = X.iloc[val_idx] if isinstance(X, pd.DataFrame) else X[val_idx]
+                y_va_fold = y[val_idx]
 
-            clf = get_baseline_model(family, params=params, seed=seed)
-            clf.fit(X_tr_fold, y_tr_fold)
-            preds = clf.predict_proba(X_va_fold)[:, 1]
-            score = roc_auc_score(y_va_fold, preds)
-            cv_scores.append(score)
+                clf = get_baseline_model(family, params=params, seed=seed)
+                clf.fit(X_tr_fold, y_tr_fold)
+                preds = clf.predict_proba(X_va_fold)[:, 1]
+                score = roc_auc_score(y_va_fold, preds)
+                cv_scores.append(score)
+                del clf, preds, X_tr_fold, y_tr_fold, X_va_fold, y_va_fold
+                gc.collect()
+                if progress_callback is not None:
+                    progress_callback({
+                        "next_candidate": candidate_idx,
+                        "current_cv_scores": cv_scores,
+                        "best_score": best_score,
+                        "best_params": best_params,
+                        "score_cache": score_cache,
+                    })
+            score_cache[params_key] = cv_scores
 
         mean_score = float(np.mean(cv_scores)) if cv_scores else 0.0
         if mean_score > best_score:
             best_score = mean_score
             best_params = params
+        current_cv_scores = []
+        if progress_callback is not None:
+            progress_callback({
+                "next_candidate": candidate_idx + 1,
+                "current_cv_scores": [],
+                "best_score": best_score,
+                "best_params": best_params,
+                "score_cache": score_cache,
+            })
+            print(
+                f"    completed trial {candidate_idx + 1}/{len(candidates)} "
+                f"(best CV AUC {best_score:.4f})",
+                flush=True,
+            )
 
     return {"best_params": best_params, "best_cv_auc": round(best_score, 4)}
 
@@ -174,6 +216,14 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def save_tuning_checkpoint(path: Path, tuned_dict: dict) -> None:
+    """Atomically persist completed tuning jobs so a native crash can resume."""
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    with tmp_path.open("w", encoding="utf-8") as stream:
+        json.dump(tuned_dict, stream, indent=2)
+    tmp_path.replace(path)
+
+
 def main():
     cfg = load_config(ROOT / "configs/experiment.yaml")
     with open(BENCHMARK_CONFIG, encoding="utf-8") as stream:
@@ -192,16 +242,25 @@ def main():
     # Step 1: Tune every DGP/feature-set pair and the full Home Credit train split.
     # ──────────────────────────────────────────────────────────────────────────
 
-    tuned_dict = {
-        "protocol": {
+    protocol = {
             "n_trials": n_trials,
             "cv_folds": cv_folds,
             "seed": tuning_seed,
             "scoring": search_cfg["scoring"],
             "feature_sets": search_cfg["feature_sets"],
-            "home_credit_training_rows": None,
-        }
+            "benchmark_config_sha256": sha256_file(BENCHMARK_CONFIG),
     }
+    if TUNING_CHECKPOINT.exists():
+        with TUNING_CHECKPOINT.open(encoding="utf-8") as stream:
+            checkpoint = json.load(stream)
+        if checkpoint.get("protocol") == protocol:
+            tuned_dict = checkpoint
+            print(f"Resuming compatible tuning checkpoint: {TUNING_CHECKPOINT}")
+        else:
+            tuned_dict = {"protocol": protocol, "dgp1": {}, "dgp2": {}}
+            print("Ignoring tuning checkpoint with a different protocol/config.")
+    else:
+        tuned_dict = {"protocol": protocol, "dgp1": {}, "dgp2": {}}
     print(
         f"\n[Step 1] Fresh tuning: {n_trials} trials, {cv_folds}-fold CV, "
         "training split only."
@@ -212,15 +271,18 @@ def main():
         train = full[full["split"] == "train"].reset_index(drop=True)
         y_train = train["default_flag"].to_numpy(dtype=int)
         dgp_name = f"dgp{dgp_id}"
-        tuned_dict[dgp_name] = {}
+        tuned_dict.setdefault(dgp_name, {})
         for feature_set in search_cfg["feature_sets"]:
             feature_set = str(feature_set)
             feature_columns = {"A": FEATURE_SET_A, "C": FEATURE_SET_C}.get(feature_set)
             if feature_columns is None:
                 raise ValueError(f"Unsupported tuning feature set: {feature_set}")
             X_train = train[feature_columns]
-            tuned_dict[dgp_name][feature_set] = {}
+            tuned_dict[dgp_name].setdefault(feature_set, {})
             for family in MODEL_FAMILIES:
+                if family in tuned_dict[dgp_name][feature_set]:
+                    print(f"  {dgp_name} Set {feature_set} {family:8s} -> resumed")
+                    continue
                 started = time.time()
                 result = tune_family(
                     family,
@@ -232,6 +294,7 @@ def main():
                     cv_folds=cv_folds,
                 )
                 tuned_dict[dgp_name][feature_set][family] = result
+                save_tuning_checkpoint(TUNING_CHECKPOINT, tuned_dict)
                 print(
                     f"  {dgp_name} Set {feature_set} {family:8s} -> "
                     f"CV AUC {result['best_cv_auc']:.4f} in {time.time()-started:.1f}s",
@@ -245,10 +308,24 @@ def main():
     hc_columns = [str(column) for column in feat_names_hc]
     X_tr_hc = pd.DataFrame(X_tr_hc_np, columns=hc_columns)
     y_tr_hc = y_tr_hc.astype(int)
-    tuned_dict["protocol"]["home_credit_training_rows"] = int(len(y_tr_hc))
-    tuned_dict["home_credit"] = {"all": {}}
+    tuned_dict["home_credit_training_rows"] = int(len(y_tr_hc))
+    tuned_dict.setdefault("home_credit", {}).setdefault("all", {})
+    tuned_dict.setdefault("in_progress", {})
     for family in MODEL_FAMILIES:
+        if family in tuned_dict["home_credit"]["all"]:
+            print(f"  Home Credit {family:8s} -> resumed")
+            continue
+        print(
+            f"  Home Credit {family:8s} tuning on {len(y_tr_hc):,} training rows...",
+            flush=True,
+        )
         started = time.time()
+        progress_key = f"home_credit/all/{family}"
+
+        def persist_progress(state, key=progress_key):
+            tuned_dict["in_progress"][key] = state
+            save_tuning_checkpoint(TUNING_CHECKPOINT, tuned_dict)
+
         result = tune_family(
             family,
             X_tr_hc,
@@ -257,8 +334,12 @@ def main():
             n_iter=n_trials,
             seed=tuning_seed,
             cv_folds=cv_folds,
+            resume_state=tuned_dict["in_progress"].get(progress_key),
+            progress_callback=persist_progress,
         )
         tuned_dict["home_credit"]["all"][family] = result
+        tuned_dict["in_progress"].pop(progress_key, None)
+        save_tuning_checkpoint(TUNING_CHECKPOINT, tuned_dict)
         print(
             f"  Home Credit {family:8s} -> CV AUC {result['best_cv_auc']:.4f} "
             f"in {time.time()-started:.1f}s",
@@ -266,7 +347,11 @@ def main():
         )
     with open(OUT_JSON, "w", encoding="utf-8") as stream:
         json.dump(tuned_dict, stream, indent=2)
-    inputs = [BENCHMARK_CONFIG, ROOT / "data/authentic/application_train.csv"]
+    inputs = [
+        BENCHMARK_CONFIG,
+        ROOT / "configs/experiment.yaml",
+        ROOT / "data/authentic/application_train.csv",
+    ]
     inputs.extend(
         get_output_dir(cfg, dgp_id, 0) / "features_full.parquet"
         for dgp_id in (1, 2)
@@ -282,10 +367,21 @@ def main():
         except PackageNotFoundError:
             package_versions[package] = None
     manifest = {
+        "command": "python -u research/run_phase5_risk_baselines.py",
+        "git_commit": subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip(),
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "protocol": tuned_dict["protocol"],
+        "tuning_dataset_seed": 0,
+        "evaluation_seeds": list(range(1, 11)),
         "inputs_sha256": {
-            str(path.relative_to(ROOT)): sha256_file(path) for path in inputs
+            str(path.resolve().relative_to(ROOT.resolve())): sha256_file(path)
+            for path in inputs
         },
         "runner_sha256": sha256_file(Path(__file__)),
         "tuned_params_sha256": sha256_file(OUT_JSON),
@@ -311,7 +407,7 @@ def main():
     # ──────────────────────────────────────────────────────────────────────────
     # Step 2: Evaluate Baselines on Synthetic Seeds 1..10
     # ──────────────────────────────────────────────────────────────────────────
-    print("\n[Step 2] Evaluating 6 model baselines across synthetic seeds 1..10...")
+    print("\n[Step 2] Evaluating 5 model families across synthetic seeds 1..10...")
     synthetic_eval_rows = []
 
     for dgp_id in [1, 2]:
@@ -456,7 +552,7 @@ def main():
         "# Phase 5 Report: Risk-Model Baselines with Equal Tuning",
         "",
         f"**Date**: {datetime.now(timezone.utc).date().isoformat()}",
-        f"**Execution Time**: {time.time()-t0_start:.1f}s",
+        f"**Final invocation execution time**: {time.time()-t0_start:.1f}s",
         "",
         "## (a) What ran",
         "- Command: `python -u research/run_phase5_risk_baselines.py`",
@@ -502,6 +598,7 @@ def main():
         "",
         "## (d) Anomalies / deviations",
         "- Prior report contained hardcoded numbers inconsistent with CSV; this report is CSV-driven.",
+        "- WoE-LR was excluded because importing optbinning/ropwr crashes Python on this Windows environment; LR, RF, LightGBM, CatBoost, and XGBoost ran.",
         f"- Logistic slopes outside [0.8, 1.2]: {'NONE' if slope_ok else '; '.join(slope_flags)}",
         "",
         "## (e) Acceptance checks",

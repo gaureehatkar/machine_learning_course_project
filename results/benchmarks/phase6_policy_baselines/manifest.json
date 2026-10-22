@@ -1,0 +1,36 @@
+{
+  "command": "python -u research/run_phase6_policy_baselines.py",
+  "git_commit": "24d5b8f60fb4b022c15ddec1b9f18b72d6bc31d9",
+  "config": "configs/experiment.yaml",
+  "config_sha256": "8e5242b9f079f0f7668b2dff2c4b09ec6f7bf52501b3c6b42de88b590546d448",
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "dgps": [
+    1,
+    2
+  ],
+  "rule_scenarios": [
+    "legacy",
+    "v2_unknown",
+    "v2_ineligible",
+    "v2_eligible"
+  ],
+  "package_versions": {
+    "numpy": "1.26.4",
+    "pandas": "2.2.2",
+    "scipy": "1.13.0",
+    "scikit-learn": "1.4.2",
+    "xgboost": "2.0.3"
+  },
+  "timestamp_utc": "2026-10-22T18:26:21.581200+00:00"
+}

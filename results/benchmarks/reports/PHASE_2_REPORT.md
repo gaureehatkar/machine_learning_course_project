@@ -2,17 +2,17 @@
 
 **Date**: 2026-10-19  
 **Status**: COMPLETE (100%)  
-**Phase Objective**: Reconcile statutory rules with official scheme texts, eliminate income caps / age rules lacking official basis, introduce explicit versioning boundaries, generate true policy eligibility states without missingness, evaluate across 3 agricultural scenarios (unknown, ineligible, eligible), and re-run decision benchmarks T3, T4/T5, and T9.
+**Phase Objective**: Implement scenario rules from the supplied study specification, keep official policy provenance explicitly UNVERIFIED, generate policy truth without missingness, evaluate across 3 agricultural scenarios (unknown, ineligible, eligible), and re-run decision benchmarks T3, T4/T5, and T9.
 
 ---
 
 ## 1. Executive Summary
 
 In Phase 2, we addressed several critical policy rule discrepancies present in the legacy benchmark rules:
-1. **Rule Reconciliation**: The legacy PMMY rule set contained an applicant annual income cap of ₹10,00,000 and an age band [18, 60] lacking statutory basis. Under official PMMY guidelines, ₹10,00,000 was a maximum *loan ceiling* (not an income cap), and age restrictions are governed by general banking criteria rather than scheme-level disqualifications.
-2. **Statutory Versioning**: Added versioned loan ceiling rules (`PMMY-V2-CEILING-001A` for $\le$ ₹10L until 2024-10-23, and `PMMY-V2-CEILING-001B` for $\le$ ₹20L under Tarun Plus effective 2024-10-24).
-3. **Occupation Mapping & Sensitivity Scenarios**: Authoritative non-farm income activities (`ride_hailing`, `delivery`, `freelance_services`, `retail_micro`) are mapped to `pmmy_nonfarm_eligible = 1`. For agricultural labour (`agri_labour`), we formalized three transparent scenarios:
-   - `unknown` (default): Routes unverified agri applicants to human review (`UNRESOLVED`).
+1. **Rule treatment**: The legacy PMMY rule fixture contains an applicant income cap and an age band. The v2 study fixture omits those conditions and models a versioned loan ceiling. These choices are not legal findings; the official clauses remain unverified.
+2. **Scenario versioning**: Added the specified date boundary for a modeled loan ceiling (`PMMY-V2-CEILING-001A` through 2024-10-23 and `PMMY-V2-CEILING-001B` from 2024-10-24). The DGP has no requested-loan-amount field, so the amount condition is exercised only by the versioning unit test.
+3. **Occupation Mapping & Sensitivity Scenarios**: The scenario file maps `ride_hailing`, `delivery`, `freelance_services`, and `retail_micro` as modeled non-farm categories. For agricultural labour (`agri_labour`), results vary across three explicit scenarios:
+   - `unknown` (default): Routes agricultural applicants to human review (`UNRESOLVED`).
    - `ineligible`: Declines agri applicants at policy gate (`UNSATISFIED`).
    - `eligible`: Approves agri applicants (`SATISFIED`).
 4. **Ground-Truth Policy States**: Generated `policy_truth.parquet` across all seeds (0..10) for DGP1 and DGP2 directly from unmasked attributes, establishing true eligibility without missingness. Verified exactly **0 UNRESOLVED states** in ground truth.
@@ -62,9 +62,9 @@ Aggregated across 10 evaluation seeds (seeds 1..10) on test splits ($N=5,000$ pe
 | **DGP2** | `v2_eligible` | 0.4965 (±0.0067) | 0.2056 (±0.0047) | 0.0250 (±0.0020) | **0.0000** (±0.0000) | 0.0000 (±0.0000) | 0.6246 (±0.0478) | 0.6906 (±0.0040) | 0.0101 (±0.0016) | +0.0025 (±0.0079) |
 
 ### Key Observations:
-1. **Policy Compliance**: Under all DGPs and scenarios, the D4 pipeline achieves **0.0000 true policy violations**. In contrast, the unconstrained risk gate D1 generates ~7.7% violations under legacy and ~7.4% under v2_ineligible.
+1. **Configured hard-gate outcome**: Under the measured DGPs and scenarios, the D4 pipeline has **0.0000 true policy violations**. D1 generates violations under legacy and `v2_ineligible`. These are simulation results against the configured rules and generated truth, not evidence of legal compliance.
 2. **Review Rate Shifts**:
-   - `v2_unknown`: Review rate rises to ~26.7% because unverified agricultural applicants are sent to review.
+   - `v2_unknown`: Review rate is ~26.7% because agricultural applicants are routed to review in this scenario.
    - `v2_ineligible`: Review rate drops to ~18.1% because agricultural applicants are declined outright at the policy gate.
    - `v2_eligible`: Overall approval rate increases from 43.5% to 49.5% (+6.0 percentage points) as agricultural applicants are eligible.
 3. **e-Shram Fairness Parity**: Disparity across e-Shram registered vs unregistered applicants is statistically indistinguishable from zero (95% CI spans zero across all scenarios).

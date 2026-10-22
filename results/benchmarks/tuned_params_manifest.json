@@ -1,0 +1,49 @@
+{
+  "created_at_utc": "2026-10-22T18:08:14.320123+00:00",
+  "protocol": {
+    "n_trials": 30,
+    "cv_folds": 5,
+    "seed": 42,
+    "scoring": "roc_auc",
+    "feature_sets": [
+      "A",
+      "C"
+    ],
+    "benchmark_config_sha256": "2089c0caba4d7f8c8dbb9ad85abe6d44e98ac1255abdb0a919c58d1ead0ecff2"
+  },
+  "inputs_sha256": {
+    "configs/benchmarks.yaml": "2089c0caba4d7f8c8dbb9ad85abe6d44e98ac1255abdb0a919c58d1ead0ecff2",
+    "configs/experiment.yaml": "8e5242b9f079f0f7668b2dff2c4b09ec6f7bf52501b3c6b42de88b590546d448",
+    "data/authentic/application_train.csv": "52e96b895b1112e1c853f670e58372719c8441c5ed1c57ac2f7fad559d784f5f",
+    "data/synthetic/dgp1/seed0/features_full.parquet": "a6566da45efdac2fb89c1407d171500c5fc41e328a0591f3887dbaad68dd9ad6",
+    "data/synthetic/dgp2/seed0/features_full.parquet": "c48ee52fdac248f1eebb39aae19d9ed44fe3d42aeb6513f60816f5cc051348c1"
+  },
+  "runner_sha256": "9e9e1a83342ac57ff6aae374cf29708ea14a627e98d03c98af931dccaa6b4e27",
+  "tuned_params_sha256": "475d76127f03b409403d792279a5a190948d60991281c4e9211cdc0b21e9a46a",
+  "package_versions": {
+    "numpy": "1.26.4",
+    "pandas": "2.2.2",
+    "scikit-learn": "1.4.2",
+    "scipy": "1.13.0",
+    "xgboost": "2.0.3",
+    "lightgbm": "4.3.0",
+    "catboost": "1.2.5",
+    "optbinning": null,
+    "pyarrow": "16.0.0"
+  },
+  "command": "python -u research/run_phase5_risk_baselines.py",
+  "git_commit": "24d5b8f60fb4b022c15ddec1b9f18b72d6bc31d9",
+  "tuning_dataset_seed": 0,
+  "evaluation_seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ]
+}

@@ -20,11 +20,11 @@ from __future__ import annotations
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 import uvicorn
 
 # Add project root to path
@@ -89,8 +89,20 @@ class ApplicantFeatures(BaseModel):
 class DecisionRequest(BaseModel):
     """Request body for credit decision endpoint."""
     applicant: ApplicantFeatures
-    decision_mode: str = Field("production", description="production | diagnostic")
+    decision_mode: str = Field("D4", description="D1 | D2 | D3 | D4")
     explain: bool = Field(True, description="Include explanation JSON")
+    tau: float | None = Field(None, ge=0, le=1, description="Optional PD threshold override")
+    tau_e: float | None = Field(None, ge=0, le=1, description="Optional evidence threshold override")
+
+    @field_validator("decision_mode", mode="before")
+    @classmethod
+    def normalize_decision_mode(cls, value: Any) -> str:
+        # Keep the original UI labels usable while exposing the experiment modes.
+        aliases = {"production": "D4", "diagnostic": "D4"}
+        mode = aliases.get(str(value).lower(), str(value).upper())
+        if mode not in {"D1", "D2", "D3", "D4"}:
+            raise ValueError("decision_mode must be one of D1, D2, D3, or D4")
+        return mode
 
 
 class GateResult(BaseModel):
@@ -119,6 +131,9 @@ class DecisionResponse(BaseModel):
     
     # Risk score (PD 0-1)
     risk_score: float
+    risk_source: str
+    tau_used: float
+    tau_e_used: float
     
     # Credit score (derived, for display only)
     credit_score: int
@@ -134,10 +149,13 @@ class DecisionResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Health check response."""
+    model_config = {"protected_namespaces": ()}
+
     status: str  # ok | degraded | error
     mode: str  # research
     version: str
     message: str
+    model_loaded: bool
 
 
 class ConfigResponse(BaseModel):
@@ -147,6 +165,28 @@ class ConfigResponse(BaseModel):
     policy_schemes: list[str]
     risk_bins: list[float]
     decision_date: str
+    default_tau: float
+
+
+class ExplainRequest(BaseModel):
+    applicant_id: str
+    pd_calibrated: float = Field(ge=0, le=1)
+    tau: float = Field(ge=0, le=1)
+    decision: Literal["APPROVE", "REVIEW", "DECLINE"]
+    reason_code: str | None = None
+    evidence_score: float = Field(ge=0, le=1)
+    evidence_status: Literal["SUFFICIENT", "INSUFFICIENT"]
+    history_length: int = Field(ge=1, le=12)
+    tau_e: float = Field(ge=0, le=1)
+    mode: Literal["D1", "D2", "D3", "D4"] = "D4"
+    policy_state: Literal["SATISFIED", "UNSATISFIED", "UNRESOLVED"] = "UNRESOLVED"
+
+
+class BatchRequest(BaseModel):
+    applicants: list[dict[str, Any]] = Field(min_length=1)
+    decision_mode: Literal["D1", "D2", "D3", "D4"] = "D4"
+    tau: float | None = Field(None, ge=0, le=1)
+    tau_e: float | None = Field(None, ge=0, le=1)
 
 
 # ── FastAPI app ───────────────────────────────────────────────────────────────
@@ -191,7 +231,8 @@ async def health() -> HealthResponse:
         status="ok",
         mode="research",
         version="0.1.0",
-        message="SynthGigCredit research prototype is operational"
+        message="SynthGigCredit research prototype is operational; PD uses a heuristic unless supplied",
+        model_loaded=False,
     )
 
 
@@ -210,10 +251,36 @@ async def get_config() -> ConfigResponse:
     return ConfigResponse(
         approval_target=CONFIG["decision"]["approval_target"],
         evidence_threshold=CONFIG["evidence"]["tau_e"],
-        policy_schemes=list(POLICY_SET.keys()) if POLICY_SET else [],
-        risk_bins=CONFIG["cost"]["L"],
-        decision_date=date.today().isoformat()
+        policy_schemes=sorted({rule.policy_id for rule in POLICY_SET.rules}) if POLICY_SET else [],
+        risk_bins=_risk_rank_bins(),
+        decision_date=date.today().isoformat(),
+        default_tau=_default_tau(),
     )
+
+
+@app.get("/api/model_status")
+async def model_status() -> dict[str, Any]:
+    """Report model artifact availability and the saved T1 benchmark metrics."""
+    result_paths = [
+        ROOT / "results" / "benchmarks" / "T1_v2" / "T1_results_v2.json",
+        ROOT / "results" / "authentic" / "T1_results_v2.json",
+    ]
+    t1_results = None
+    for path in result_paths:
+        if path.is_file():
+            try:
+                import json
+                t1_results = json.loads(path.read_text(encoding="utf-8"))
+                break
+            except (OSError, ValueError):
+                continue
+    return {
+        "xgb_available": False,
+        "lr_available": False,
+        "model_loaded": False,
+        "risk_source": "heuristic",
+        "t1_results": t1_results,
+    }
 
 
 # ── Decision Endpoint ──────────────────────────────────────────────────────────
@@ -228,157 +295,250 @@ async def decide(req: DecisionRequest) -> DecisionResponse:
     if CONFIG is None or POLICY_SET is None:
         raise HTTPException(status_code=503, detail="Service not ready")
     
-    app_data = req.applicant
-    
+    return _decide_applicant(
+        req.applicant,
+        mode=req.decision_mode,
+        include_explanation=req.explain,
+        tau=req.tau,
+        tau_e=req.tau_e,
+    )
+
+
+@app.post("/api/explain")
+async def explain_standalone(req: ExplainRequest) -> dict[str, Any]:
+    """Build an explanation from a previously computed decision and gate values."""
+    decision_obj = Decision(req.decision, req.reason_code)
+    result = explain(
+        applicant_id=req.applicant_id,
+        pd_calibrated=req.pd_calibrated,
+        tau=req.tau,
+        decision=decision_obj,
+        evidence_score=req.evidence_score,
+        evidence_status=req.evidence_status,
+        history_length=req.history_length,
+        tau_e=req.tau_e,
+        policy_evaluation=None,
+        mode=req.mode,
+    )
+    result["policy"]["state"] = req.policy_state
+    return result
+
+
+@app.post("/api/evaluate_batch")
+async def evaluate_batch_endpoint(req: BatchRequest) -> dict[str, Any]:
+    """Evaluate a small batch with the same decision helper used by /api/decide."""
+    if CONFIG is None or POLICY_SET is None:
+        raise HTTPException(status_code=503, detail="Service not ready")
+    decisions: list[dict[str, Any]] = []
+    for row in req.applicants:
+        applicant = _applicant_from_batch(row)
+        result = _decide_applicant(
+            applicant,
+            mode=req.decision_mode,
+            include_explanation=False,
+            tau=req.tau,
+            tau_e=req.tau_e,
+        ).model_dump()
+        result["evidence_sufficient"] = result["evidence_gate"]["passed"] is True
+        decisions.append(result)
+
+    total = len(decisions)
+    counts = {
+        label.lower(): sum(row["outcome"] == label for row in decisions)
+        for label in ("APPROVE", "REVIEW", "DECLINE")
+    }
+    summary = {
+        "total": total,
+        **counts,
+        **{f"{name}_rate": count / total for name, count in counts.items()},
+    }
+    return {
+        "decisions": decisions,
+        "summary": summary,
+        "tau_used": decisions[0]["tau_used"],
+        "tau_e_used": decisions[0]["tau_e_used"],
+        "mode": req.decision_mode,
+    }
+
+
+# ── Helper functions ───────────────────────────────────────────────────────────
+
+def _default_tau() -> float:
+    return float(CONFIG.get("decision", {}).get("tau", 0.4)) if CONFIG else 0.4
+
+
+def _risk_rank_bins() -> list[float]:
+    return [0.10, 0.30]
+
+
+def _normalise_occupation(value: str) -> str:
+    occupation = "_".join(value.strip().lower().replace("-", " ").split())
+    aliases = {
+        "agricultural": "agri_labour",
+        "agriculture": "agri_labour",
+        "freelance": "freelance_services",
+    }
+    return aliases.get(occupation, occupation)
+
+
+def _decide_applicant(
+    app_data: ApplicantFeatures,
+    *,
+    mode: str,
+    include_explanation: bool,
+    tau: float | None,
+    tau_e: float | None,
+) -> DecisionResponse:
+    """Apply the shared evidence, policy, and PD gates for one applicant."""
+    if CONFIG is None or POLICY_SET is None:
+        raise HTTPException(status_code=503, detail="Service not ready")
+
     try:
-        # ── Layer 1: Evidence Gate ─────────────────────────────────────────
         e_score = float(compute_evidence(
-            app_data.history_length,
-            app_data.aa_completeness,
-            app_data.uli_completeness,
+            [app_data.history_length],
+            [app_data.aa_completeness],
+            [app_data.uli_completeness],
             CONFIG,
-        ).item())
-        tau_e = CONFIG["evidence"]["tau_e"]
-        evidence_pass = e_score >= tau_e
-        
+        ).iloc[0])
+        tau_e_used = float(tau_e if tau_e is not None else CONFIG["evidence"]["tau_e"])
+        tau_used = float(tau if tau is not None else _default_tau())
+        evidence_pass = e_score >= tau_e_used
+
+        evidence_active = mode in {"D3", "D4"}
         evidence_gate = GateResult(
             gate_name="evidence",
-            passed=evidence_pass,
-            reasoning=f"Evidence score {e_score:.3f} {'≥' if evidence_pass else '<'} threshold {tau_e}",
+            passed=evidence_pass if evidence_active else None,
+            reasoning=(
+                f"Evidence score {e_score:.3f} {'≥' if evidence_pass else '<'} threshold {tau_e_used:.3f}"
+                if evidence_active else f"Evidence gate skipped in {mode} mode"
+            ),
             details={
                 "score": round(e_score, 3),
-                "threshold": tau_e,
+                "threshold": tau_e_used,
                 "history_length": app_data.history_length,
                 "aa_completeness": app_data.aa_completeness,
                 "uli_completeness": app_data.uli_completeness,
-            }
+            },
         )
-        
-        # ── Layer 2: Policy Gate ───────────────────────────────────────────
-        policy_pass = None
-        policy_matches = {}
-        policy_state = "UNRESOLVED"  # default
 
-        if evidence_pass:
+        occupation_normalised = _normalise_occupation(app_data.occupation)
+        policy_attributes = {
+            "age": app_data.age_policy,
+            "annual_income": app_data.income_policy * 12,
+            "occupation_category": occupation_normalised,
+            "nonfarm_business_flag": app_data.nonfarm_engaged,
+        }
+        policy_matches: dict[str, str] = {}
+        policy_evaluations = {}
+        policy_states: list[State] = []
+        decision_date_obj = date.fromisoformat(app_data.decision_date)
+        scheme_ids = sorted({rule.policy_id for rule in POLICY_SET.rules})
+        for scheme_id in scheme_ids:
             try:
-                decision_date_obj = date.fromisoformat(app_data.decision_date)
-                # Evaluate each policy scheme by ID
-                scheme_ids = ["jan_samarth", "pmmy"]
-                scheme_results: list[State] = []
-                for scheme_id in scheme_ids:
-                    try:
-                        active_rules = select_version(POLICY_SET, scheme_id, decision_date_obj)
-                        eval_result = evaluate_policy(active_rules, app_data.__dict__)
-                        scheme_results.append(eval_result.state)
-                        policy_matches[scheme_id] = eval_result.state.value
-                    except PolicyVersionError:
-                        # No active rules for this scheme on this date → UNRESOLVED
-                        scheme_results.append(State.UNRESOLVED)
-                        policy_matches[scheme_id] = "UNRESOLVED"
+                active_rules = select_version(POLICY_SET, scheme_id, decision_date_obj)
+                evaluation = evaluate_policy(active_rules, policy_attributes)
+                policy_evaluations[scheme_id] = evaluation
+                policy_states.append(evaluation.state)
+                policy_matches[scheme_id] = evaluation.state.value
+            except PolicyVersionError:
+                policy_states.append(State.UNRESOLVED)
+                policy_matches[scheme_id] = State.UNRESOLVED.value
 
-                # Combine with Kleene OR (qualify under any scheme)
-                combined = combine_schemes(scheme_results, mode=CONFIG["policy"]["scheme_mode"])
-                policy_state = combined.value
-                policy_pass = (combined == State.TRUE)
-            except Exception as e:
-                policy_state = "UNRESOLVED"
-                policy_pass = None
-                policy_matches["error"] = str(e)
-        
+        combined = combine_schemes(
+            policy_states,
+            mode=str(CONFIG.get("policy", {}).get("scheme_mode", "any")),
+        )
+        policy_state = combined.value
+        policy_active = mode in {"D2", "D4"}
+        policy_pass = combined == State.SATISFIED
         policy_gate = GateResult(
             gate_name="policy",
-            passed=policy_pass,
-            reasoning="Policy gate skipped (evidence failed)" if not evidence_pass else 
-                     f"Policy state: {policy_state}",
+            passed=policy_pass if policy_active else None,
+            reasoning=(
+                f"Policy state: {policy_state} (rules UNVERIFIED)"
+                if policy_active else f"Policy gate skipped in {mode} mode"
+            ),
             details={
                 "schemes_evaluated": policy_matches,
+                "policy_state": policy_state,
+                "policy_rules_status": "UNVERIFIED",
                 "age": app_data.age_policy,
                 "income": round(app_data.income_policy, 2),
                 "occupation": app_data.occupation,
-            }
+                "occupation_normalised": occupation_normalised,
+            },
         )
-        
-        # ── Risk Score (PD estimate) ───────────────────────────────────────
-        # Use provided PD if available, otherwise compute heuristic
-        if app_data.pd_xgb is not None and 0 <= app_data.pd_xgb <= 1:
-            risk_score = app_data.pd_xgb
-        elif app_data.pd_lr is not None and 0 <= app_data.pd_lr <= 1:
-            risk_score = app_data.pd_lr
+
+        if app_data.pd_xgb is not None:
+            risk_score = float(app_data.pd_xgb)
+            risk_source = "override_xgb"
+        elif app_data.pd_lr is not None:
+            risk_score = float(app_data.pd_lr)
+            risk_source = "override_lr"
         else:
             risk_score = _compute_risk_heuristic(app_data, CONFIG)
-        
-        # Map risk score to rank
-        risk_bins = CONFIG["cost"]["L"]
-        risk_rank = None
-        if len(risk_bins) >= 3:
-            if risk_score <= risk_bins[0]:
-                risk_rank = "low"
-            elif risk_score <= risk_bins[1]:
-                risk_rank = "medium"
-            else:
-                risk_rank = "high"
-        
+            risk_source = "heuristic"
+
+        rank_bins = _risk_rank_bins()
+        risk_rank = "low" if risk_score < rank_bins[0] else "medium" if risk_score < rank_bins[1] else "high"
         risk_gate = GateResult(
             gate_name="risk_rank",
-            passed=risk_rank is not None,
+            passed=True,
             reasoning=f"Risk rank: {risk_rank} (PD {risk_score:.3f})",
             details={
                 "pd_estimate": round(risk_score, 3),
                 "risk_rank": risk_rank,
-                "bins": risk_bins,
-            }
+                "bins": rank_bins,
+                "source": risk_source,
+            },
         )
-        
-        # ── Final Decision using gating function ────────────────────────────
-        # Use D4 mode (all gates enabled)
-        # Threshold tau is set to match 70% approval target on validation set
-        # For now use a conservative default tau = 0.4
-        tau = CONFIG.get("decision", {}).get("tau", 0.4)
-        
+
         decision_obj = make_decision(
             pd=risk_score,
             evidence_score=e_score,
             policy_state=policy_state,
-            mode="D4",  # All gates enabled
-            tau=tau,
-            tau_e=tau_e,
+            mode=mode,
+            tau=tau_used,
+            tau_e=tau_e_used,
         )
-        
-        # ── Credit Score (display only; does NOT affect decision logic) ────────
+
         scoring_cfg = CONFIG.get("scoring", {})
         score, tau_score = compute_score_and_tau(
             pd=risk_score,
-            tau=tau,
+            tau=tau_used,
             base_score=scoring_cfg.get("base_score", 600),
             base_odds=scoring_cfg.get("base_odds", 0.05),
             pdo=scoring_cfg.get("pdo", 50),
             score_min=scoring_cfg.get("score_min", 300),
             score_max=scoring_cfg.get("score_max", 900),
         )
-        
         score_display = format_score_display(
             score=score,
             pd=risk_score,
-            tau=tau,
+            tau=tau_used,
             tau_score=tau_score,
             phase="1",
-            model_name="heuristic" if app_data.pd_xgb is None and app_data.pd_lr is None else "model",
+            model_name=risk_source,
         )
-        
-        # ── Explanation ────────────────────────────────────────────────────
+
         explanation_dict = None
-        if req.explain:
-            try:
-                explanation_dict = explain(
-                    applicant_id=app_data.applicant_id,
-                    features=app_data.dict(),
-                    decision=decision_obj,
-                    config=CONFIG,
-                )
-            except Exception as e:
-                # Explanation failure should not block decision
-                explanation_dict = {"error": str(e)}
-        
+        if include_explanation:
+            representative_evaluation = policy_evaluations.get("jan_samarth") or next(
+                iter(policy_evaluations.values()), None
+            )
+            explanation_dict = explain(
+                applicant_id=app_data.applicant_id,
+                pd_calibrated=risk_score,
+                tau=tau_used,
+                decision=decision_obj,
+                evidence_score=e_score,
+                evidence_status="SUFFICIENT" if evidence_pass else "INSUFFICIENT",
+                history_length=app_data.history_length,
+                tau_e=tau_e_used,
+                policy_evaluation=representative_evaluation,
+                mode=mode,
+            )
+
         return DecisionResponse(
             applicant_id=app_data.applicant_id,
             decision_date=app_data.decision_date,
@@ -388,18 +548,49 @@ async def decide(req: DecisionRequest) -> DecisionResponse:
             policy_gate=policy_gate,
             risk_rank=risk_gate,
             risk_score=round(risk_score, 3),
+            risk_source=risk_source,
+            tau_used=tau_used,
+            tau_e_used=tau_e_used,
             credit_score=int(round(score)),
             credit_score_display=score_display,
             explanation=explanation_dict,
             model_version="0.1.0",
-            mode=req.decision_mode,
+            mode=mode,
         )
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Decision error: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Decision error: {exc}") from exc
 
 
-# ── Helper functions ───────────────────────────────────────────────────────────
+def _applicant_from_batch(row: dict[str, Any]) -> ApplicantFeatures:
+    """Expand the compact batch schema to the full single-applicant request."""
+    age = int(row.get("age", 30))
+    income = float(row.get("income_monthly", row.get("income_mean", 20000)))
+    history = int(row.get("history_length", 12))
+    return ApplicantFeatures(
+        age=age,
+        platform_tenure=max(1, min(24, history)),
+        e_shram_registered=int(row.get("e_shram_registered", 0)),
+        income_mean=income,
+        income_volatility=float(row.get("income_volatility", 0.0)),
+        expense_mean=float(row.get("expense_mean", 0.0)),
+        liquidity_current=float(row.get("liquidity_current", 0.0)),
+        history_length=history,
+        multi_platform=int(row.get("multi_platform", 0)),
+        emi_status=int(row.get("emi_status", 0)),
+        aa_completeness=float(row.get("aa_completeness", 0.0)),
+        uli_completeness=float(row.get("uli_completeness", 0.0)),
+        age_policy=int(row.get("age_policy", age)),
+        income_policy=float(row.get("income_policy", income)),
+        occupation=str(row.get("occupation", "unknown")),
+        nonfarm_engaged=int(row.get("nonfarm_engaged", 0)),
+        e_shram_policy=int(row.get("e_shram_policy", row.get("e_shram_registered", 0))),
+        pd_lr=row.get("pd_lr"),
+        pd_xgb=row.get("pd_xgb"),
+        applicant_id=str(row.get("applicant_id", "BATCH")),
+        decision_date=str(row.get("decision_date", CONFIG["policy"].get("decision_date", date.today().isoformat()))),
+    )
 
 def _compute_risk_heuristic(app: ApplicantFeatures, cfg: dict) -> float:
     """

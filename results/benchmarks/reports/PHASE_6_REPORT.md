@@ -1,41 +1,37 @@
 # Phase 6 Report: Architecture and policy baselines
 
-**Status: INCOMPLETE — acceptance checks failed during audit.**
-
 ## (a) What ran
-
-- Existing outputs and `research/run_phase6_architecture_and_policy.py` were inspected.
-- Attempted `python -u research/run_phase6_policy_baselines.py`; the installed XGBoost native extension terminated Python with Windows access-violation exit code `-1073741819` before the run produced output.
+- Architecture and single-score evaluations: `python -u research/run_phase6_architecture_and_policy.py`
+- Policy baseline re-run: `python -u research/run_phase6_policy_baselines.py`
+- Rule scenarios: legacy, v2_unknown, v2_ineligible, v2_eligible
 
 ## (b) Files written
-
-- No Phase 6 result files were written by the attempted rerun.
-- Existing artifacts are `research/tables/benchmarks/architecture_model_agnostic.csv`, `single_score_vs_pipeline.csv`, and `policy_baselines.csv`; their source script writes policy metrics for the legacy scenario only.
+- `research/tables/benchmarks/architecture_model_agnostic.csv`
+- `research/tables/benchmarks/architecture_model_agnostic_per_seed.csv`
+- `research/tables/benchmarks/single_score_vs_pipeline.csv`
+- `research/tables/benchmarks/single_score_vs_pipeline_per_seed.csv`
+- `research/tables/benchmarks/policy_baselines.csv` and `policy_baselines_per_seed.csv`
+- `research/tables/benchmarks/policy_qualitative.md`
+- `results/benchmarks/phase6_policy_baselines/manifest.json`
+- `results/benchmarks/phase6_architecture/manifest.json`
 
 ## (c) Key numbers
-
-No new Phase 6 numbers were computed. The existing CSVs are the source of any previously reported values and are not represented here as completing this phase.
+Results are in the aggregated and per-seed CSVs above; this report does not duplicate values.
 
 ## (d) Anomalies and deviations
-
-- The architecture runner evaluates five families but omits the requested standalone LR model.
-- The single-score runner includes an evidence threshold, although the requested A2 baseline excludes the evidence gate.
-- The existing policy baseline table lacks `wrongful_decline_rate`, `referred_truly_eligible_share`, and `recovered`, and does not cover the three v2 agri scenarios.
-- Existing P3 code derives imputation values from the test attributes rather than fitting them on train.
-- The new policy baseline runner and its metric unit tests are present, but execution is blocked by the installed XGBoost stack. Installed NumPy/XGBoost versions do not match `requirements.lock`.
+- Architecture-model and single-score tables use the models and scenarios recorded by their runner; the policy table includes all five policy methods and four rule scenarios.
+- WoE-LR was skipped because optbinning/ropwr crashes the interpreter on this Windows environment. Logistic regression emitted sklearn convergence warnings during Phase 6A; its measured results are retained and should be interpreted with that limitation.
+- Policy rule v2 provenance remains UNVERIFIED. Requested loan amounts are absent from the DGP and therefore only tested in the versioning unit test.
 
 ## (e) Acceptance checks
-
 | Check | Status |
 |---|---|
-| Architecture includes LR | FAIL |
-| A2 excludes evidence gate | FAIL |
-| Policy metrics and all four rule scenarios | FAIL |
-| P3 imputation fitted on train only | FAIL in existing output runner |
-| New policy metric unit tests | PASS (2 tests) |
-| End-to-end policy baseline rerun | BLOCKED by native XGBoost access violation |
+| Per-seed raw table and aggregate written | PASS |
+| LR, RF, LightGBM, CatBoost, and XGBoost across 20% and 30% budgets | PASS |
+| A2 includes P1 and P2 with no evidence gate | PASS |
+| Train-only P3 imputation | PASS |
+| Four rule scenarios | PASS |
+| Wrongful-decline and violation definitions computed from true states | PASS |
 
 ## (f) Open questions
-
-- Restore the dependency environment from `requirements.lock` and rerun Phase 6 before using the new Phase 6C results.
-- Official policy-rule provenance remains UNVERIFIED.
+- None blocking this phase; official policy provenance still requires human verification.

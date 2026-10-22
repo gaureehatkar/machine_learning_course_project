@@ -8,12 +8,12 @@
 
 ## 1. Executive Summary & Critical Nuance
 
-In standard unconstrained evaluations, Gate D4 exhibits lower approval rates than Gate D1 because D4 enforces policy compliance (e.g. non-farm criteria, evidence thresholds). 
+In standard unconstrained evaluations, Gate D4 exhibits lower approval rates than Gate D1 because D4 applies the configured policy and evidence gates. Policy rule provenance remains UNVERIFIED.
 
 When Gate D1's threshold $\tau$ is explicitly tuned on the validation set to match Gate D4's coverage:
 - **D1 realizes a lower default rate among approved than D4** (e.g., in DGP1: D1 DR = 0.0033 vs D4 DR = 0.0175, $p < 0.0001$; in DGP2: D1 DR = 0.0051 vs D4 DR = 0.0253, $p < 0.0001$).
-- **Neutral Interpretation**: Gate D1 selects exclusively on predicted probability of default ($PD_i < \tau$). To achieve ~41% coverage, D1 admits only the lowest ~41% of risk scores. In contrast, Gate D4 must satisfy statutory compliance rules (PMMY / Jan Samarth), meaning high-scoring, low-risk applicants who fail policy criteria are declined or reviewed, while slightly higher risk applicants who meet statutory rules are approved.
-- **True Policy Compliance**: Gate D1 achieves lower default risk at the cost of **severe policy violations** (~7.7% violation rate). Gate D4 guarantees **0.0000% policy violations**, demonstrating that the multi-stage architecture trades marginal portfolio credit risk for legal and regulatory compliance.
+- **Measured interpretation**: Gate D1 selects on predicted default probability ($PD_i < \tau$). At validation-matched coverage under legacy rules, its test default rate among approved is lower than D4's in both DGPs. This result is reported alongside D1's higher violation rate against the modeled policy truth.
+- **Configured hard-gate result**: D4 has **0.0000 measured policy violations** in these simulations; D1's legacy violation rate is about 7.7%. This is a property of the configured hard gate and generated truth, not a legal-compliance finding. Source: `research/tables/benchmarks/matched_coverage.csv`, `research/tables/T3_gating_agg.csv`.
 
 ---
 

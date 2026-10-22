@@ -1,0 +1,52 @@
+{
+  "command": "python -u research/run_phase6_architecture_and_policy.py",
+  "git_commit": "24d5b8f60fb4b022c15ddec1b9f18b72d6bc31d9",
+  "created_at_utc": "2026-10-22T18:24:02.790612+00:00",
+  "config_sha256": {
+    "configs\\experiment.yaml": "8e5242b9f079f0f7668b2dff2c4b09ec6f7bf52501b3c6b42de88b590546d448",
+    "configs\\benchmarks.yaml": "2089c0caba4d7f8c8dbb9ad85abe6d44e98ac1255abdb0a919c58d1ead0ecff2"
+  },
+  "tuned_params_sha256": "475d76127f03b409403d792279a5a190948d60991281c4e9211cdc0b21e9a46a",
+  "dgps": [
+    1,
+    2
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "risk_models": [
+    "lr",
+    "rf",
+    "lgbm",
+    "catboost",
+    "xgb"
+  ],
+  "review_budgets": [
+    0.2,
+    0.3
+  ],
+  "package_versions": {
+    "numpy": "1.26.4",
+    "pandas": "2.2.2",
+    "scipy": "1.13.0",
+    "scikit-learn": "1.4.2",
+    "xgboost": "2.0.3",
+    "lightgbm": "4.3.0",
+    "catboost": "1.2.5"
+  },
+  "outputs": [
+    "research/tables/benchmarks/architecture_model_agnostic.csv",
+    "research/tables/benchmarks/architecture_model_agnostic_per_seed.csv",
+    "research/tables/benchmarks/single_score_vs_pipeline.csv",
+    "research/tables/benchmarks/single_score_vs_pipeline_per_seed.csv"
+  ]
+}

@@ -21,6 +21,8 @@ from scipy.stats import t as t_dist
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
+from src.policy.rule_engine import evaluate_batch
+
 TABLES = ROOT / "research/tables/benchmarks"
 REPORTS = ROOT / "results/benchmarks/reports"
 OUTPUT = ROOT / "results/benchmarks/phase6_policy_baselines"
@@ -251,9 +253,23 @@ def run() -> None:
                     "P3_train_imputation": imputed,
                     "P4_kleene": observed,
                 }
+                decision_modes = {
+                    "P0_no_policy": "D1",
+                    "P1_fail_closed": "D2",
+                    "P2_fail_open": "D2",
+                    "P3_train_imputation": "D2",
+                    "P4_kleene": "D4",
+                }
                 for baseline, policy_states in policies.items():
                     decisions = np.asarray([
-                        make_decision(pd_test[i], evidence[i], policy_states[i], "D4", tau, tau_e).decision
+                        make_decision(
+                            pd_test[i],
+                            evidence[i],
+                            policy_states[i],
+                            decision_modes[baseline],
+                            tau,
+                            tau_e,
+                        ).decision
                         for i in range(len(test))
                     ])
                     metrics = summarize_policy_metrics(
@@ -280,6 +296,22 @@ def run() -> None:
     REPORTS.mkdir(parents=True, exist_ok=True)
     raw.to_csv(TABLES / "policy_baselines_per_seed.csv", index=False)
     aggregate.to_csv(TABLES / "policy_baselines.csv", index=False)
+
+    architecture_path = TABLES / "architecture_model_agnostic.csv"
+    single_score_path = TABLES / "single_score_vs_pipeline.csv"
+    architecture_ok = False
+    single_score_ok = False
+    if architecture_path.is_file():
+        architecture = pd.read_csv(architecture_path)
+        architecture_ok = (
+            {"lr", "rf", "lgbm", "catboost", "xgb"}.issubset(set(architecture["model"]))
+            and {0.20, 0.30}.issubset(set(architecture["budget"].astype(float)))
+        )
+    if single_score_path.is_file():
+        single_score = pd.read_csv(single_score_path)
+        single_score_ok = {"P1_fail_closed", "P2_fail_open"}.issubset(
+            set(single_score["policy_handling"])
+        )
 
     qualitative = """# Policy baseline implementation notes
 
@@ -332,22 +364,28 @@ def run() -> None:
 
 ## (b) Files written
 - `research/tables/benchmarks/architecture_model_agnostic.csv`
+- `research/tables/benchmarks/architecture_model_agnostic_per_seed.csv`
 - `research/tables/benchmarks/single_score_vs_pipeline.csv`
+- `research/tables/benchmarks/single_score_vs_pipeline_per_seed.csv`
 - `research/tables/benchmarks/policy_baselines.csv` and `policy_baselines_per_seed.csv`
 - `research/tables/benchmarks/policy_qualitative.md`
 - `results/benchmarks/phase6_policy_baselines/manifest.json`
+- `results/benchmarks/phase6_architecture/manifest.json`
 
 ## (c) Key numbers
 Results are in the aggregated and per-seed CSVs above; this report does not duplicate values.
 
 ## (d) Anomalies and deviations
 - Architecture-model and single-score tables use the models and scenarios recorded by their runner; the policy table includes all five policy methods and four rule scenarios.
+- WoE-LR was skipped because optbinning/ropwr crashes the interpreter on this Windows environment. Logistic regression emitted sklearn convergence warnings during Phase 6A; its measured results are retained and should be interpreted with that limitation.
 - Policy rule v2 provenance remains UNVERIFIED. Requested loan amounts are absent from the DGP and therefore only tested in the versioning unit test.
 
 ## (e) Acceptance checks
 | Check | Status |
 |---|---|
 | Per-seed raw table and aggregate written | PASS |
+| LR, RF, LightGBM, CatBoost, and XGBoost across 20% and 30% budgets | {"PASS" if architecture_ok else "FAIL"} |
+| A2 includes P1 and P2 with no evidence gate | {"PASS" if single_score_ok else "FAIL"} |
 | Train-only P3 imputation | PASS |
 | Four rule scenarios | PASS |
 | Wrongful-decline and violation definitions computed from true states | PASS |

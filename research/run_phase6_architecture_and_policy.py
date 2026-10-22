@@ -21,14 +21,16 @@ from __future__ import annotations
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
-import optbinning
 
+import hashlib
 import json, sys, time, subprocess
 from pathlib import Path
 from datetime import datetime, timezone, date
+from importlib.metadata import PackageNotFoundError, version
 
 import numpy as np
 import pandas as pd
+import yaml
 from scipy.stats import t as t_dist
 
 ROOT = Path(__file__).parent.parent
@@ -59,8 +61,10 @@ from src.benchmarks.risk_baselines import get_baseline_model, get_tuned_params
 TABLES = ROOT / "research/tables/benchmarks"
 REPORTS = ROOT / "results/benchmarks/reports"
 OUT_BENCH = ROOT / "results/benchmarks"
+ARCH_BENCH = OUT_BENCH / "phase6_architecture"
 TABLES.mkdir(parents=True, exist_ok=True)
 REPORTS.mkdir(parents=True, exist_ok=True)
+ARCH_BENCH.mkdir(parents=True, exist_ok=True)
 
 # woe_lr excluded: ropwr native crash on Python 3.12 + numpy 1.26 (Windows).
 MODEL_FAMILIES = ["lr", "rf", "lgbm", "catboost", "xgb"]
@@ -92,6 +96,12 @@ def seed_ci(df: pd.DataFrame, group_cols: list, val_cols: list) -> pd.DataFrame:
 
 def run_phase6():
     cfg = load_config(ROOT / "configs/experiment.yaml")
+    with (ROOT / "configs/benchmarks.yaml").open(encoding="utf-8") as stream:
+        benchmark_cfg = yaml.safe_load(stream) or {}
+    review_cost_cfg = benchmark_cfg.get("review_baselines", {})
+    cost_fn = float(review_cost_cfg.get("cost_fn", 1.0))
+    cost_fp = float(review_cost_cfg.get("cost_fp", 1.0))
+    cost_review = float(review_cost_cfg.get("cost_review_base", 0.1))
     legacy_pset = load_policy_set(ROOT / "configs/policy_rules")
     ddate = date.fromisoformat(cfg["policy"]["decision_date"])
     tau_e = cfg["evidence"]["tau_e"]
@@ -181,54 +191,72 @@ def run_phase6():
                 d4_rev = float(review_rate(dec_d4))
                 d4_dr = float(default_rate_among_approved(dec_d4, y_te))
 
-                # Review allocation R1 (B=20%)
+                # Allocate R1 reviews in the common eligible pool, with
+                # unresolved policy states consuming budget first.
                 test_f_copy = test_f.copy()
                 test_f_copy["pd_model"] = pd_test
                 test_f_copy["pd_calibrated"] = pd_test
                 test_f_copy["decision_D4"] = dec_d4
                 test_f_copy["policy_state"] = pol_test
-                pool = dec_d4 == "REVIEW"
+                pool_mask = (pd_test < tau) & (pol_test != "UNSATISFIED")
+                test_f_copy["in_pool"] = pool_mask
 
-                ref_r1 = allocate_review(test_f_copy, "R1", 0.20, seed)
-                capture_r1 = float(bad_loan_capture(ref_r1.values, y_te, pool))
+                for budget in (0.20, 0.30):
+                    referred = allocate_review(test_f_copy, "R1", budget, seed).to_numpy()
+                    true_eligible = true_pol_test == "SATISFIED"
+                    approved = (pool_mask & ~referred) | (
+                        referred & true_eligible & (y_te == 0)
+                    )
+                    n_approved = int(approved.sum())
+                    violation = (
+                        float((approved & ~true_eligible).sum() / n_approved)
+                        if n_approved else 0.0
+                    )
+                    default_approved = (
+                        float(y_te[approved].mean()) if n_approved else 0.0
+                    )
+                    capture = float(bad_loan_capture(referred, y_te, pool_mask))
+                    declined_good = int((~approved & (y_te == 0)).sum())
+                    approved_bad = int((approved & (y_te == 1)).sum())
+                    total_cost = (
+                        cost_fn * approved_bad
+                        + cost_fp * declined_good
+                        + cost_review * int(referred.sum())
+                    ) / len(test_f)
 
-                # Post-review outcomes
-                final_dec = np.where(pool, "APPROVE", "DECLINE")
-                ref_mask = ref_r1.values & pool
-                final_dec[ref_mask] = np.where(
-                    (true_pol_test[ref_mask] == "UNSATISFIED") | (y_te[ref_mask] == 1),
-                    "DECLINE",
-                    "APPROVE",
-                )
-                final_approved = (dec_d4 == "APPROVE") | ((final_dec == "APPROVE") & pool)
-                post_app = float(final_approved.mean())
-                post_dr = float(y_te[final_approved].mean()) if final_approved.sum() > 0 else 0.0
-
-                rows_6a.append({
-                    "dgp": f"DGP{dgp_id}",
-                    "seed": seed,
-                    "model": fam,
-                    "tau": round(float(tau), 4),
-                    "d4_approval_rate": round(d4_app, 4),
-                    "d4_review_rate": round(d4_rev, 4),
-                    "d4_default_rate": round(d4_dr, 4),
-                    "bad_loan_capture_r1_b20": round(capture_r1, 4),
-                    "post_review_approval_rate": round(post_app, 4),
-                    "post_review_default_rate": round(post_dr, 4),
-                })
+                    rows_6a.append({
+                        "dgp": f"DGP{dgp_id}",
+                        "seed": seed,
+                        "model": fam,
+                        "budget": budget,
+                        "tau": round(float(tau), 4),
+                        "d4_approval_rate": round(d4_app, 4),
+                        "d4_review_rate": round(d4_rev, 4),
+                        "d4_default_rate": round(d4_dr, 4),
+                        "violation_rate": round(violation, 4),
+                        "approval_rate": round(float(approved.mean()), 4),
+                        "review_rate": round(float(referred.mean()), 4),
+                        "default_rate_among_approved": round(default_approved, 4),
+                        "bad_loan_capture": round(capture, 4),
+                        "cost_per_applicant": round(float(total_cost), 4),
+                    })
 
             print(f"  [6A] DGP{dgp_id} seed {seed:2d}/10 done in {time.time()-t_s:.1f}s", flush=True)
 
     df_6a_raw = pd.DataFrame(rows_6a)
+    df_6a_raw.to_csv(TABLES / "architecture_model_agnostic_per_seed.csv", index=False)
     metrics_6a = [
         "d4_approval_rate",
         "d4_review_rate",
         "d4_default_rate",
-        "bad_loan_capture_r1_b20",
-        "post_review_approval_rate",
-        "post_review_default_rate",
+        "violation_rate",
+        "approval_rate",
+        "review_rate",
+        "default_rate_among_approved",
+        "bad_loan_capture",
+        "cost_per_applicant",
     ]
-    df_6a_agg = seed_ci(df_6a_raw, ["dgp", "model"], metrics_6a)
+    df_6a_agg = seed_ci(df_6a_raw, ["dgp", "model", "budget"], metrics_6a)
     df_6a_agg.to_csv(TABLES / "architecture_model_agnostic.csv", index=False)
     print("Saved architecture_model_agnostic.csv")
 
@@ -305,38 +333,87 @@ def run_phase6():
             ])
             target_cov_val = float(approval_rate(dec_d4_val))
 
-            # Sweep tau on val for plain filter
+            # A2 P1/P2 use only PD + policy, without evidence or review gates.
+            # Tune separate thresholds on validation to match D4's validation coverage.
             candidates = np.linspace(pd_val.min(), pd_val.max(), 500)
-            best_tau_filter = float(candidates[0])
-            best_diff = float("inf")
-            for t_cand in candidates:
-                plain_app_val = (pd_val < t_cand) & (pol_val == "SATISFIED")
-                diff = abs(float(plain_app_val.mean()) - target_cov_val)
-                if diff < best_diff:
-                    best_diff = diff
-                    best_tau_filter = float(t_cand)
+            for handling, filter_val, filter_test in (
+                ("P1_fail_closed", pol_val == "SATISFIED", pol_test == "SATISFIED"),
+                ("P2_fail_open", pol_val != "UNSATISFIED", pol_test != "UNSATISFIED"),
+            ):
+                best_tau_filter = float(candidates[0])
+                best_diff = float("inf")
+                for t_cand in candidates:
+                    plain_app_val = (pd_val < t_cand) & filter_val
+                    diff = abs(float(plain_app_val.mean()) - target_cov_val)
+                    if diff < best_diff:
+                        best_diff = diff
+                        best_tau_filter = float(t_cand)
 
-            # Evaluate plain filter on test
-            plain_app_test = (pd_test < best_tau_filter) & (pol_test == "SATISFIED")
-            plain_cov = float(plain_app_test.mean())
-            plain_dr = float(y_te[plain_app_test].mean()) if plain_app_test.sum() > 0 else 0.0
-            plain_viol = float((plain_app_test & (true_pol_test == "UNSATISFIED")).sum() / plain_app_test.sum()) if plain_app_test.sum() > 0 else 0.0
-
-            rows_6b.append({
-                "dgp": f"DGP{dgp_id}",
-                "seed": seed,
-                "d4_coverage": round(d4_cov, 4),
-                "d4_default_rate": round(d4_dr, 4),
-                "plain_filter_coverage": round(plain_cov, 4),
-                "plain_filter_default_rate": round(plain_dr, 4),
-                "plain_filter_violation_rate": round(plain_viol, 4),
-                "diff_default_rate": round(plain_dr - d4_dr, 4),
-            })
+                plain_app_test = (pd_test < best_tau_filter) & filter_test
+                plain_cov = float(plain_app_test.mean())
+                plain_dr = float(y_te[plain_app_test].mean()) if plain_app_test.any() else 0.0
+                plain_viol = (
+                    float((plain_app_test & (true_pol_test == "UNSATISFIED")).sum() / plain_app_test.sum())
+                    if plain_app_test.any() else 0.0
+                )
+                rows_6b.append({
+                    "dgp": f"DGP{dgp_id}",
+                    "seed": seed,
+                    "policy_handling": handling,
+                    "target_validation_coverage": round(target_cov_val, 4),
+                    "d4_coverage": round(d4_cov, 4),
+                    "d4_default_rate": round(d4_dr, 4),
+                    "plain_filter_coverage": round(plain_cov, 4),
+                    "plain_filter_default_rate": round(plain_dr, 4),
+                    "plain_filter_violation_rate": round(plain_viol, 4),
+                    "diff_default_rate": round(plain_dr - d4_dr, 4),
+                })
 
     df_6b_raw = pd.DataFrame(rows_6b)
-    df_6b_agg = seed_ci(df_6b_raw, ["dgp"], ["d4_coverage", "d4_default_rate", "plain_filter_coverage", "plain_filter_default_rate", "diff_default_rate"])
+    df_6b_raw.to_csv(TABLES / "single_score_vs_pipeline_per_seed.csv", index=False)
+    df_6b_agg = seed_ci(
+        df_6b_raw,
+        ["dgp", "policy_handling"],
+        [
+            "target_validation_coverage", "d4_coverage", "d4_default_rate",
+            "plain_filter_coverage", "plain_filter_default_rate",
+            "plain_filter_violation_rate", "diff_default_rate",
+        ],
+    )
     df_6b_agg.to_csv(TABLES / "single_score_vs_pipeline.csv", index=False)
     print("Saved single_score_vs_pipeline.csv")
+
+    config_paths = [ROOT / "configs/experiment.yaml", ROOT / "configs/benchmarks.yaml"]
+    tuned_path = OUT_BENCH / "tuned_params.json"
+    hash_file = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    packages = {}
+    for package in ("numpy", "pandas", "scipy", "scikit-learn", "xgboost", "lightgbm", "catboost"):
+        try:
+            packages[package] = version(package)
+        except PackageNotFoundError:
+            packages[package] = None
+    arch_manifest = {
+        "command": "python -u research/run_phase6_architecture_and_policy.py",
+        "git_commit": subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, check=True,
+            capture_output=True, text=True,
+        ).stdout.strip(),
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "config_sha256": {str(path.relative_to(ROOT)): hash_file(path) for path in config_paths},
+        "tuned_params_sha256": hash_file(tuned_path),
+        "dgps": [1, 2],
+        "seeds": list(range(1, 11)),
+        "risk_models": MODEL_FAMILIES,
+        "review_budgets": [0.20, 0.30],
+        "package_versions": packages,
+        "outputs": [
+            "research/tables/benchmarks/architecture_model_agnostic.csv",
+            "research/tables/benchmarks/architecture_model_agnostic_per_seed.csv",
+            "research/tables/benchmarks/single_score_vs_pipeline.csv",
+            "research/tables/benchmarks/single_score_vs_pipeline_per_seed.csv",
+        ],
+    }
+    (ARCH_BENCH / "manifest.json").write_text(json.dumps(arch_manifest, indent=2), encoding="utf-8")
 
     # The dedicated 6C runner includes all rule scenarios and required metrics.
     subprocess.run(

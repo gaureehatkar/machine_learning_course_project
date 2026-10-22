@@ -277,29 +277,34 @@ def make_f8():
 def make_f9():
     df = pd.read_csv(BENCH / "architecture_model_agnostic.csv")
     metrics = [
-        ("d4_review_rate_mean", "d4_review_rate_ci", "Review rate (D4)"),
-        ("bad_loan_capture_r1_b20_mean", "bad_loan_capture_r1_b20_ci", "R1 capture B=20%"),
-        ("d4_default_rate_mean", "d4_default_rate_ci", "Default among approved (D4)"),
+        ("violation_rate_mean", "violation_rate_ci", "Policy violation rate"),
+        ("bad_loan_capture_mean", "bad_loan_capture_ci", "R1 bad-loan capture"),
+        ("default_rate_among_approved_mean", "default_rate_among_approved_ci", "Default among approved"),
     ]
     models = sorted(df["model"].unique())
     fig, axes = plt.subplots(1, 3, figsize=(11.0, 3.8))
     x = np.arange(len(models))
-    w = 0.35
+    combinations = [
+        ("DGP1", 0.20), ("DGP1", 0.30),
+        ("DGP2", 0.20), ("DGP2", 0.30),
+    ]
+    w = 0.18
     for ax, (mcol, ccol, title) in zip(axes, metrics):
-        for i, dgp in enumerate(["DGP1", "DGP2"]):
-            s = df[df["dgp"] == dgp].set_index("model")
+        for i, (dgp, budget) in enumerate(combinations):
+            s = df[(df["dgp"] == dgp) & (df["budget"] == budget)].set_index("model")
+            offset = (i - (len(combinations) - 1) / 2) * w
             ax.bar(
-                x + (i - 0.5) * w,
+                x + offset,
                 [s.loc[m, mcol] for m in models],
                 w,
                 yerr=[s.loc[m, ccol] for m in models],
                 capsize=2,
-                label=dgp,
+                label=f"{dgp}, B={budget:.0%}",
             )
         ax.set_xticks(x)
         ax.set_xticklabels(models, rotation=40, ha="right")
         ax.set_title(title)
-        ax.legend(fontsize=7, loc="best")
+        ax.legend(fontsize=6, loc="best")
     fig.tight_layout()
     save(fig, "F9")
 
